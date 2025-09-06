@@ -466,7 +466,7 @@ Applies the following passes:
         @debug "The pool of fractions of size $(length(fracs))\n$(join(map(repr, fracs), ",\n"))"
         if reversed_order
             non_redundant = collect(1:length(fracs))
-            for i in length(fracs):-1:1
+            for i = length(fracs):-1:1
                 func = fracs[i]
                 if length(non_redundant) == 1
                     continue
@@ -484,7 +484,7 @@ Applies the following passes:
         else
             non_redundant = Vector{Int}()
             push!(non_redundant, 1)
-            for i in 2:length(fracs)
+            for i = 2:length(fracs)
                 func = fracs[i]
                 result = field_contains_mod_p(
                     RationalFunctionField(fracs[non_redundant]),
@@ -510,7 +510,7 @@ end
 
 function spring_cleaning_pass!(fracs)
     @assert all(is_rational_func_normalized, fracs)
-    for i in 1:length(fracs)
+    for i = 1:length(fracs)
         func = fracs[i]
         num, den = unpack_fraction(func)
         if is_constant(num)
@@ -648,12 +648,12 @@ Returns a set of Groebner bases for multiple different rankings of variables.
         return ordering_to_generators
     end
     if code >= 1
-        for i in 1:nbases
+        for i = 1:nbases
             vars_shuffled = circshift(vars, i)
             n = length(vars_shuffled)
             # n1, n2 = div(n, 2), n - div(n, 2)
             n1, n2 = n - 1, 1
-            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1 + 1):end])
+            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1+1):end])
             @debug "Computing GB for ordering $ord"
             new_rff = groebner_basis_coeffs(
                 gb_rff,
@@ -666,11 +666,11 @@ Returns a set of Groebner bases for multiple different rankings of variables.
         end
     end
     if code >= 2
-        for _ in 1:nbases
+        for _ = 1:nbases
             vars_shuffled = shuffle(vars)
             n = length(vars_shuffled)
             n1, n2 = max(n - 2, 1), min(2, length(vars) - 1)
-            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1 + 1):end])
+            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1+1):end])
             @debug "Computing GB for ordering $ord"
             new_rff = groebner_basis_coeffs(
                 gb_rff,
@@ -683,12 +683,12 @@ Returns a set of Groebner bases for multiple different rankings of variables.
         end
     end
     if code >= 3
-        for _ in 1:nbases
+        for _ = 1:nbases
             vars_shuffled = shuffle(vars)
             n = length(vars_shuffled)
             n1 = div(n, 2)
             n2 = n - n1
-            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1 + 1):end])
+            ord = DegRevLex(vars_shuffled[1:n1]) * DegRevLex(vars_shuffled[(n1+1):end])
             @debug "Computing GB for ordering $ord"
             new_rff = groebner_basis_coeffs(
                 gb_rff,

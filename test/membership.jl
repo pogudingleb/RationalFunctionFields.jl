@@ -186,6 +186,9 @@
     for c in cases
         R = RationalFunctionFields.poly_ring(c[:field])
         @test field_contains(c[:field], c[:funcs], 0.99) == c[:correct]
-        @test RationalFunctionFields.field_contains_mod_p(c[:field], c[:funcs] .// one(R)) == c[:correct]
+        @test RationalFunctionFields.field_contains_mod_p(
+            c[:field],
+            c[:funcs] .// one(R),
+        ) == c[:correct]
     end
 end

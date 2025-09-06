@@ -53,7 +53,7 @@ function merge_results(outer::Vector{Bool}, inner::Vector{Bool})
     result = copy(outer)
     inner_index = 1
 
-    for i in 1:length(result)
+    for i = 1:length(result)
         if result[i]
             if !inner[inner_index]
                 result[i] = false
@@ -77,7 +77,7 @@ end
 function cancel_gcds(polys::Vector)
     cancelled_polys = [squarefree_part(p) for p in polys]
     for (i, p) in enumerate(cancelled_polys)
-        for j in (i + 1):length(cancelled_polys)
+        for j = (i+1):length(cancelled_polys)
             cancelled_polys[j] = divexact(cancelled_polys[j], gcd(cancelled_polys[j], p))
         end
     end
@@ -91,7 +91,7 @@ end
 function insert_at_indices(arr::Vector, indices::Vector{Int}, elem)
     result = empty(arr)
     idx_arr = 1
-    for i in 1:(length(arr) + length(indices))
+    for i = 1:(length(arr)+length(indices))
         if i in indices
             push!(result, elem)
         else
@@ -124,13 +124,13 @@ end
 
 Evaluates a polynomial/rational function on a dictionary of type `var => val` and missing values are replaced with zeroes
 """
-function eval_at_dict(poly::P, d::Dict{P, <:RingElem}) where {P <: MPolyRingElem}
+function eval_at_dict(poly::P, d::Dict{P,<:RingElem}) where {P<:MPolyRingElem}
     R = parent(first(values(d)))
     point = [get(d, v, zero(R)) for v in gens(parent(poly))]
     return evaluate(poly, point)
 end
 
-function eval_at_dict(poly::P, d::Dict{P, S}) where {P <: MPolyRingElem, S <: Real}
+function eval_at_dict(poly::P, d::Dict{P,S}) where {P<:MPolyRingElem,S<:Real}
     R = parent(poly)
     @assert R == parent(first(keys(d)))
     xs = gens(parent(first(keys(d))))
@@ -149,24 +149,24 @@ end
 
 function eval_at_dict(
     rational::Generic.FracFieldElem{T},
-    d::Dict{T, V},
-) where {T <: MPolyRingElem, V}
+    d::Dict{T,V},
+) where {T<:MPolyRingElem,V}
     f, g = unpack_fraction(rational)
     return eval_at_dict(f, d) / eval_at_dict(g, d)
 end
 
 function eval_at_dict(
     rational::Generic.FracFieldElem{<:T},
-    d::Dict{T, <:RingElem},
-) where {T <: MPolyRingElem}
+    d::Dict{T,<:RingElem},
+) where {T<:MPolyRingElem}
     f, g = unpack_fraction(rational)
     return eval_at_dict(f, d) * inv(eval_at_dict(g, d))
 end
 
 function eval_at_dict(
     rational::Generic.FracFieldElem{<:P},
-    d::Dict{<:P, <:Union{<:Generic.FracFieldElem, <:P}},
-) where {P <: MPolyRingElem}
+    d::Dict{<:P,<:Union{<:Generic.FracFieldElem,<:P}},
+) where {P<:MPolyRingElem}
     f, g = unpack_fraction(rational)
     return eval_at_dict(f, d) // eval_at_dict(g, d)
 end
@@ -206,19 +206,19 @@ function parent_ring_change(
     var_mapping = zeros(Int, max(nvars(old_ring), nvars(new_ring)))
     if matching === :byname
         old_symbols, new_symbols = symbols(old_ring), symbols(new_ring)
-        for i in 1:length(old_symbols)
+        for i = 1:length(old_symbols)
             u = old_symbols[i]
             found = findfirst(v -> (u === v), new_symbols)
             isnothing(found) && continue
             var_mapping[i] = found
         end
     elseif matching === :byindex
-        var_mapping[1:(nvars(new_ring) - shift)] .= (1 + shift):nvars(new_ring)
+        var_mapping[1:(nvars(new_ring)-shift)] .= (1+shift):nvars(new_ring)
     else
         throw(Base.ArgumentError("Unknown matching type: $matching"))
     end
     # Hoist the compatibility check out of the loop
-    for i in 1:nvars(old_ring)
+    for i = 1:nvars(old_ring)
         if degree(poly, i) > 0 && iszero(var_mapping[i])
             throw(
                 Base.ArgumentError(
@@ -232,10 +232,10 @@ function parent_ring_change(
     bring = base_ring(new_ring)
     exps = Vector{Vector{Int}}(undef, length(poly))
     coefs = map(c -> bring(c), coefficients(poly))
-    @inbounds for i in 1:length(poly)
+    @inbounds for i = 1:length(poly)
         evec = exponent_vector(poly, i)
         new_exp = zeros(Int, nvars(new_ring))
-        for i in 1:length(evec)
+        for i = 1:length(evec)
             iszero(var_mapping[i]) && continue
             new_exp[var_mapping[i]] = evec[i]
         end
@@ -315,9 +315,9 @@ function select_pivots(M::MatElem)
     (nrows, ncols) = size(M)
     nonpivots = Vector{Int}()
     pivots = Vector{Int}()
-    for i in 1:ncols
+    for i = 1:ncols
         pivot = false
-        for k in j:nrows
+        for k = j:nrows
             if !iszero(M[k, i])
                 j = k + 1
                 pivot = true
@@ -441,6 +441,3 @@ end
 function is_rational_func_normalized(f)
     leading_coefficient(denominator(f)) > 0 && isone(gcd(numerator(f), denominator(f)))
 end
-
-
-

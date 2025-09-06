@@ -29,7 +29,7 @@
         cases,
         Dict(
             :field =>
-                RationalFunctionField([x^i + y^i + z^i + u^i + v^i // one(R) for i in 1:5]),
+                RationalFunctionField([x^i + y^i + z^i + u^i + v^i // one(R) for i = 1:5]),
             :correct => Set([
                 x + y + z + u + v // one(R),
                 x^2 + y^2 + z^2 + u^2 + v^2 // one(R),

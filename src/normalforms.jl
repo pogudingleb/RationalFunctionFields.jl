@@ -42,7 +42,7 @@ function pivot(p::PolyVect)
     return (ind, leading_monomial(p.polys[ind]))
 end
 
-function coordinate(p::PolyVect, index::Tuple{Int, <:MPolyRingElem})
+function coordinate(p::PolyVect, index::Tuple{Int,<:MPolyRingElem})
     @assert 0 < index[1] && index[1] <= length(p.polys)
     return coeff(p.polys[index[1]], index[2])
 end
@@ -60,7 +60,7 @@ end
 function refine_relations(
     relations::Vector{T},
     gbs::Vector{Vector{T}},
-) where {T <: MPolyRingElem}
+) where {T<:MPolyRingElem}
     n = length(gbs)
     nf_poly_pairs = Vector{PolyVect}()
     for p in relations
@@ -76,7 +76,7 @@ function refine_relations(
         map(
             pp -> pp.polys[end],
             filter(
-                pp -> all(map(iszero, pp.polys[1:(end - 1)])),
+                pp -> all(map(iszero, pp.polys[1:(end-1)])),
                 abstract_rref(nf_poly_pairs),
             ),
         ),
@@ -110,7 +110,7 @@ is not specified but is assumed to be close to 1.
     xs_ff = contract_point(gens(ring_ff), mqs)
 
     all_monomials = empty(xs_ff)
-    for deg in 1:up_to_degree
+    for deg = 1:up_to_degree
         for combination in Combinatorics.with_replacement_combinations(xs_ff, deg)
             push!(all_monomials, prod(combination))
         end
@@ -119,7 +119,7 @@ is not specified but is assumed to be close to 1.
     nbpoints = 0
     relations = empty(xs_ff)
     monomials_to_skip = Set([one(ring_ff)])
-    for deg in 1:up_to_degree
+    for deg = 1:up_to_degree
         slice_relations =
             [m for m in setdiff(all_monomials, monomials_to_skip) if total_degree(m) <= deg]
         @debug "At degree $deg we start with $(length(slice_relations)) monomials"
@@ -133,7 +133,7 @@ is not specified but is assumed to be close to 1.
 
         while prev_dim != curr_dim
             gbs = empty([empty(xs_ff)])
-            for _ in 1:batch_size
+            for _ = 1:batch_size
                 point = ParamPunPam.distinct_nonzero_points(finite_field, length(xs_ff))
                 point_ext = extend_point(point, mqs)
                 gens_spec = specialize_mod_p(mqs, point)
@@ -170,7 +170,7 @@ is not specified but is assumed to be close to 1.
     to_param = extend_point(gens(ring_param), mqs)
     relations_qq =
         Vector{Generic.FracFieldElem{elem_type(ring_param)}}(undef, length(relations))
-    for i in 1:length(relations)
+    for i = 1:length(relations)
         relation_ff = relations[i]
         success, relation_qq =
             ParamPunPam.rational_reconstruct_polynomial(parent(mqs), relation_ff)

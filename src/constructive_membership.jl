@@ -168,12 +168,12 @@ $sat_string
     poly_ring_tag, vars_tag =
         polynomial_ring(K, vcat(sat_string, orig_strings, tag_strings))
     sat_var = vars_tag[1]
-    orig_vars = vars_tag[2:(nvars(x_ring) + 1)]
-    tag_vars = vars_tag[(nvars(x_ring) + 2):end]
+    orig_vars = vars_tag[2:(nvars(x_ring)+1)]
+    tag_vars = vars_tag[(nvars(x_ring)+2):end]
     # Construct generators of the tagged MQS ideal.
     tagged_mqs = Vector{elem_type(poly_ring_tag)}(undef, length(extended_gens) + 1)
     Q = one(poly_ring_tag)
-    for i in 1:length(extended_gens)
+    for i = 1:length(extended_gens)
         num, den = unpack_fraction(extended_gens[i])
         num_tag = parent_ring_change(num, poly_ring_tag)
         den_tag = parent_ring_change(den, poly_ring_tag)
@@ -229,9 +229,9 @@ $sat_string
     relations_between_tags =
         map(poly -> parent_ring_change(poly, ring_of_tags), relations_between_tags)
     param_var_mapping = merge(
-        Dict(gens(poly_ring_tag)[2:(nvars(x_ring) + 1)] .=> gens(parametric_ring)),
+        Dict(gens(poly_ring_tag)[2:(nvars(x_ring)+1)] .=> gens(parametric_ring)),
         Dict(
-            gens(poly_ring_tag)[(nvars(x_ring) + 2):end] .=>
+            gens(poly_ring_tag)[(nvars(x_ring)+2):end] .=>
                 (gens(ring_of_tags)) .* one(parametric_ring),
         ),
     )
@@ -248,7 +248,7 @@ $sat_string
     var_mapping = Dict(gens(x_ring) .=> gens(parametric_ring))
     memberships = Vector{Bool}(undef, length(to_be_reduced))
     remainders = Vector{Generic.FracFieldElem{T}}(undef, length(to_be_reduced))
-    for i in 1:length(to_be_reduced)
+    for i = 1:length(to_be_reduced)
         frac = to_be_reduced[i]
         num = eval_at_dict(numerator(frac), var_mapping)
         den = eval_at_dict(denominator(frac), var_mapping)
@@ -272,7 +272,7 @@ $sat_string
     )
     new_remainders = Vector{Generic.FracFieldElem{T}}(undef, length(algebraicity))
     i = 1
-    for j in 1:length(algebraicity)
+    for j = 1:length(algebraicity)
         if !algebraicity[j]
             new_remainders[j] = one(short_ring_of_tags) // one(short_ring_of_tags)
         else
@@ -282,7 +282,7 @@ $sat_string
     end
     relations_between_tags =
         map(p -> parent_ring_change(p, short_ring_of_tags), relations_between_tags)
-    tag_to_gen = Dict(tags[i] => fracs_gen[i] for i in 1:length(fracs_gen))
+    tag_to_gen = Dict(tags[i] => fracs_gen[i] for i = 1:length(fracs_gen))
 
     return merge_results(algebraicity, memberships),
     new_remainders,

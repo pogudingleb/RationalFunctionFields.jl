@@ -34,12 +34,12 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
     # Numerators and denominators over GF. 
     # We cache them and maintain a map:
     # a finite field --> an image over this finite field
-    cached_nums_gf::Dict{Any, Any}
-    cached_dens_gf::Dict{Any, Any}
-    cached_const_polys_gf::Dict{Any, Any}
+    cached_nums_gf::Dict{Any,Any}
+    cached_dens_gf::Dict{Any,Any}
+    cached_const_polys_gf::Dict{Any,Any}
     # Cached GBs. A mapping
     # (monomial ordering, degree) --> a GB
-    cached_groebner_bases::Dict{Any, Any}
+    cached_groebner_bases::Dict{Any,Any}
 
     """
         IdealMQS(funcs_den_nums::Vector{Vector})
@@ -79,7 +79,7 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
         pivots_indices = map(last, pivots)
         @debug "\tDegrees and lengths are $(map(first, pivots))"
         polys_to_sat = cancel_gcds([
-            funcs_den_nums[i][pivots_indices[i]] for i in 1:length(funcs_den_nums)
+            funcs_den_nums[i][pivots_indices[i]] for i = 1:length(funcs_den_nums)
         ])
         if !isempty(polys_to_sat) && sat_factorization == :none
             polys_to_sat = [prod(polys_to_sat)]
@@ -91,18 +91,18 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
             ]
         end
         @debug "There are $(length(polys_to_sat)) polynomials to saturate at; their degrees are $(map(total_degree, polys_to_sat))"
-        sat_varnames = [sat_varname * "$i" for i in 1:length(polys_to_sat)]
+        sat_varnames = [sat_varname * "$i" for i = 1:length(polys_to_sat)]
         is_empty(polys_to_sat) &&
             (@debug "Common denominator of the field generators is constant")
         existing_varnames = map(String, symbols(ring))
-        ystrs = ["y$i" for i in 1:length(existing_varnames)]
+        ystrs = ["y$i" for i = 1:length(existing_varnames)]
         @assert isempty(intersect(sat_varnames, ystrs)) "The name of the saturation variable collided with a primary variable"
         if sat_var_position === :first
             sat_var_indices = 1:length(sat_varnames)
             varnames = vcat(sat_varnames, ystrs)
         else
             @assert sat_var_position === :last
-            sat_var_indices = (length(ystrs) + 1):(length(ystrs) + length(sat_varnames))
+            sat_var_indices = (length(ystrs)+1):(length(ystrs)+length(sat_varnames))
             varnames = vcat(ystrs, sat_varnames)
         end
         @debug "Saturating variables are $sat_varnames, at the indices $sat_var_indices"
@@ -124,10 +124,10 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
         # denominators dens_qq of the same length
         nums_qq = empty(funcs_den_nums[1])
         dens_qq = empty(funcs_den_nums[1])
-        for i in 1:length(funcs_den_nums)
+        for i = 1:length(funcs_den_nums)
             plist = funcs_den_nums[i]
             den = to_R_sat(plist[pivots_indices[i]])
-            for j in 1:length(plist)
+            for j = 1:length(plist)
                 j == pivots_indices[i] && continue
                 num = to_R_sat(plist[j])
                 G = gcd(num, den)
@@ -195,7 +195,7 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     varnames = map(string, Nemo.symbols(ring_params))
     # The hope is that new variables' names would not intersect with the old ones
     old_varnames = map(i -> "y$i", 1:length(varnames))
-    new_varnames = map(i -> "__var_$i", 1:(length(varnames) + 1))
+    new_varnames = map(i -> "__var_$i", 1:(length(varnames)+1))
     if !isempty(intersect(old_varnames, new_varnames))
         @warn "Intersection in two sets of variables! $varnames $new_varnames"
     end
@@ -211,16 +211,16 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     nums_x = map(num -> parent_ring_change(num, big_ring, matching = :byname), nums_qq)
     dens_x = map(den -> parent_ring_change(den, big_ring, matching = :byname), dens_qq)
     polys = Vector{elem_type(big_ring)}(undef, length(nums_qq) + length(const_polys))
-    @inbounds for i in 1:length(dens_qq)
+    @inbounds for i = 1:length(dens_qq)
         den_y, den_x = dens_y[i], dens_x[i]
         num_y, num_x = nums_y[i], nums_x[i]
         polys[i] = num_y * den_x - den_y * num_x
     end
-    @inbounds for i in 1:length(const_polys)
-        polys[length(nums_qq) + i] = const_polys_y[i]
+    @inbounds for i = 1:length(const_polys)
+        polys[length(nums_qq)+i] = const_polys_y[i]
     end
-    main_var_indices = 1:(length(varnames) + 1)
-    param_var_indices = (length(varnames) + 2):length(big_vars)
+    main_var_indices = 1:(length(varnames)+1)
+    param_var_indices = (length(varnames)+2):length(big_vars)
     return polys, main_var_indices, param_var_indices
 end
 
@@ -230,7 +230,7 @@ end
 function ParamPunPam.reduce_mod_p!(
     mqs::IdealMQS,
     ff::Field,
-) where {Field <: Union{Nemo.fpField, Nemo.FpField}}
+) where {Field<:Union{Nemo.fpField,Nemo.FpField}}
     @debug "Reducing MQS ideal modulo $(ff)"
     # If there is a reduction modulo this field already,
     if haskey(mqs.cached_nums_gf, ff)
@@ -263,13 +263,13 @@ function fractions_to_mqs_specialized(
     nums::Vector{T},
     dens::Vector{T},
     point::Vector{P},
-) where {T, P}
+) where {T,P}
     @assert length(nums) == length(dens)
     @assert length(gens(parent(first(nums)))) == length(point)
     polys = Vector{typeof(first(nums))}(undef, length(nums))
     nums_spec = map(poly -> evaluate(poly, point), nums)
     dens_spec = map(poly -> evaluate(poly, point), dens)
-    @inbounds for i in 1:length(dens_spec)
+    @inbounds for i = 1:length(dens_spec)
         den, den_spec = dens[i], dens_spec[i]
         iszero(den_spec) && __throw_unlucky_evaluation("Point: $point")
         num, num_spec = nums[i], nums_spec[i]
@@ -280,12 +280,12 @@ end
 
 # ------------------------------------------------------------------------------
 
-function extend_point(point::Vector{T}, mqs::IdealMQS) where {T <: RingElem}
+function extend_point(point::Vector{T}, mqs::IdealMQS) where {T<:RingElem}
     return insert_at_indices(point, mqs.sat_var_indices, one(first(point)))
 end
 
-function contract_point(point::Vector{T}, mqs::IdealMQS) where {T <: RingElem}
-    return Vector{T}(point[[!(i in mqs.sat_var_indices) for i in 1:length(point)]])
+function contract_point(point::Vector{T}, mqs::IdealMQS) where {T<:RingElem}
+    return Vector{T}(point[[!(i in mqs.sat_var_indices) for i = 1:length(point)]])
 end
 
 # ------------------------------------------------------------------------------
@@ -293,7 +293,7 @@ end
 function ParamPunPam.specialize_mod_p(
     mqs::IdealMQS,
     point::Vector{T},
-) where {T <: Union{fpFieldElem, FpFieldElem}}
+) where {T<:Union{fpFieldElem,FpFieldElem}}
     K_1 = parent(first(point))
     #@debug "Evaluating MQS ideal over $K_1 at $point"
     @assert haskey(mqs.cached_nums_gf, K_1)

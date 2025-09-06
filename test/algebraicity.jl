@@ -12,11 +12,13 @@
     @test F.trbasis_probability == 0.999
 
     @test check_algebraicity(F, [a, b, c, a^2 + c^2], 0.99) == [true, true, false, false]
-    @test RationalFunctionFields.check_algebraicity_modp(F, [a, b, c, a^2 + c^2]) == [true, true, false, false]
+    @test RationalFunctionFields.check_algebraicity_modp(F, [a, b, c, a^2 + c^2]) ==
+          [true, true, false, false]
 
     F = RationalFunctionField([a^10 // c, c^5 // one(R)])
     @test check_algebraicity(F, [a, b, c], 0.99) == [true, false, true]
-    @test RationalFunctionFields.check_algebraicity_modp(F, [a, b, c]) == [true, false, true]
+    @test RationalFunctionFields.check_algebraicity_modp(F, [a, b, c]) ==
+          [true, false, true]
     @test F.trbasis == [a^10 // c, c^5 // one(R)]
     @test F.trbasis_over == [b]
 
@@ -67,7 +69,11 @@
     # the correct answer verified with SIAN
     correct = [true, false, false, true, true, false, false]
     @test check_algebraicity(F, [x // one(R) for x in gens(R)], 0.999) == correct
-    @test RationalFunctionFields.check_algebraicity_modp(F, [x // one(R) for x in gens(R)], 2^30 + 3) == correct
+    @test RationalFunctionFields.check_algebraicity_modp(
+        F,
+        [x // one(R) for x in gens(R)],
+        2^30 + 3,
+    ) == correct
 
     R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     F = RationalFunctionField([[one(R), x + y, x * y]])

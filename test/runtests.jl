@@ -26,6 +26,6 @@ end
 
 @time @testset "All the tests" verbose = true begin
     for test_file in all_tests
-            include(test_file)
+        include(test_file)
     end
 end

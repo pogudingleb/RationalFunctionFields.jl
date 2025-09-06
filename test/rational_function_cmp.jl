@@ -7,5 +7,8 @@
     @test RationalFunctionFields.rational_function_cmp(a // b, b // a)
     @test RationalFunctionFields.rational_function_cmp(a // b, a * b + b * c + c^2)
     @test RationalFunctionFields.rational_function_cmp(a^2, a^3)
-    @test RationalFunctionFields.rational_function_cmp((a^2 + a * b + c) // (a - b), (a - b) // (a^2 + a * b + c))
+    @test RationalFunctionFields.rational_function_cmp(
+        (a^2 + a * b + c) // (a - b),
+        (a - b) // (a^2 + a * b + c),
+    )
 end

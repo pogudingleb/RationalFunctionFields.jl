@@ -21,7 +21,7 @@ export check_algebraicity, field_contains, issubfield, fields_equal
 export check_constructive_field_membership
 
 # simplification
-export simplified_generating_set 
+export simplified_generating_set
 
 const _to = TimerOutputs.TimerOutput()
 

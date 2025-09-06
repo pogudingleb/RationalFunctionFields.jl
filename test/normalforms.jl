@@ -15,10 +15,7 @@
     push!(
         cases,
         Dict(
-            :rff => RationalFunctionField([
-                a * b // R(1),
-                (b * c + a * b) // (a * b),
-            ]),
+            :rff => RationalFunctionField([a * b // R(1), (b * c + a * b) // (a * b)]),
             :correct => Set([a * b // one(R), b * c // one(R)]),
             :degree => 2,
         ),

@@ -26,11 +26,11 @@ Smaller rank is better.
 function generating_set_rank(funcs)
     n = length(funcs)
     func_ranks = Vector{Int}(undef, n)
-    for i in 1:n
+    for i = 1:n
         func_ranks[i] = rational_function_rank(funcs[i])
     end
     rank = BigInt(0)
-    for i in 1:n
+    for i = 1:n
         rank = rank + (n - i + 1) * func_ranks[i]
     end
     return rank

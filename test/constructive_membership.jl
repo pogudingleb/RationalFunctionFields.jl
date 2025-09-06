@@ -214,8 +214,7 @@ end
         @test containment == c[:correct]
         for (i, expr) in enumerate(expressions)
             if containment[i]
-                @test c[:funcs][i] ==
-                    RationalFunctionFields.eval_at_dict(expr, tag_to_gen)
+                @test c[:funcs][i] == RationalFunctionFields.eval_at_dict(expr, tag_to_gen)
             end
         end
         if :relations in values(c)
@@ -229,7 +228,7 @@ end
 @testset "RationalFunctionField: simplification" begin
     n = 5
 
-    R, (x1, x2, x3, x4, x5) = polynomial_ring(QQ, ["x$i" for i in 1:n])
+    R, (x1, x2, x3, x4, x5) = polynomial_ring(QQ, ["x$i" for i = 1:n])
 
     fgens = [
         x1 + x2 + x3 + x4 + x5,
