@@ -304,7 +304,8 @@ computes their expression in terms of the generators
 
 ## Output
 
-A list of expressions of functions in `funcs` in terms of generators of `rff`.
+  - A list of expressions of functions in `funcs` in terms of generators of `rff`.
+  - A dictionary from the variables representing the generators to their values
 """
 function constructive_membership(
     rff::RationalFunctionField{T},
