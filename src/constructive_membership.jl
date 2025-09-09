@@ -289,3 +289,48 @@ $sat_string
     relations_between_tags,
     tag_to_gen
 end
+
+"""
+    constructive_membership(rff, funcs; tag_names)
+
+Assuming that the elements of `funcs` belong to the field F,
+computes their expression in terms of the generators
+
+## Input
+
+- `rff`: field of rational functions.
+- `funcs`: functions belonging to the field.
+- `tag_names`: names to be given to variables representing the generators of the field. If not provided, random names are assigned
+
+## Output
+
+A list of expressions of functions in `funcs` in terms of generators of `rff`.
+"""
+function constructive_membership(
+    rff::RationalFunctionField{T},
+    funcs::Vector{Generic.FracFieldElem{T}};
+    tag_names = Vector{String}(),
+) where {T}
+    membership, expressions, _, tag_to_gen =
+        check_constructive_field_membership(rff, funcs, tag_names = tag_names)
+    @assert all(membership)
+    if isempty(tag_names)
+        @info "Names for generators were not provided, so the have been generated as follows:\n" *
+              join(["$k = $v" for (k, v) in tag_to_gen], "\n") *
+              "\n"
+    end
+    return expressions, tag_to_gen
+end
+
+function constructive_membership(
+    rff::RationalFunctionField{T},
+    funcs::Vector{<: RingElem};
+    tag_names = Vector{String}(),
+) where {T}
+    R = poly_ring(rff)
+    return constructive_membership(
+        rff,
+        Vector{Generic.FracFieldElem{T}}([f // one(R) for f in funcs]),
+        tag_names = tag_names,
+    )
+end

@@ -5,7 +5,7 @@
     to_be_reduced = [x^2, x, 3one(R), zero(R)]
 
     memberships, remainders, relations_between_tags, tag_to_gen =
-        check_constructive_field_membership(
+        RationalFunctionFields.check_constructive_field_membership(
             RationalFunctionField(generators),
             map(f -> f // one(f), to_be_reduced),
             tag_names = ["T1", "T2"],
@@ -210,11 +210,23 @@ end
     for c in cases
         R = RationalFunctionFields.poly_ring(c[:field])
         containment, expressions, relations, tag_to_gen =
-            check_constructive_field_membership(c[:field], c[:funcs] .// one(R))
+            RationalFunctionFields.check_constructive_field_membership(
+                c[:field],
+                c[:funcs] .// one(R),
+            )
+        expressions2, tag_to_gen2 = 0, 0
+        if any(containment)
+            expressions2, tag_to_gen2 =
+                constructive_membership(c[:field], c[:funcs][containment])
+        end
+        ind = 1
         @test containment == c[:correct]
         for (i, expr) in enumerate(expressions)
             if containment[i]
                 @test c[:funcs][i] == RationalFunctionFields.eval_at_dict(expr, tag_to_gen)
+                @test c[:funcs][i] ==
+                      RationalFunctionFields.eval_at_dict(expressions2[ind], tag_to_gen2)
+                ind += 1
             end
         end
         if :relations in values(c)
@@ -241,11 +253,12 @@ end
 
     F = RationalFunctionField(fgens)
 
-    success, expressions, relations, tagdict = check_constructive_field_membership(
-        F,
-        [fgens[5] // one(R)],
-        tag_names = ["y1", "y2", "y3", "y4", "y5", "y6"],
-    )
+    success, expressions, relations, tagdict =
+        RationalFunctionFields.check_constructive_field_membership(
+            F,
+            [fgens[5] // one(R)],
+            tag_names = ["y1", "y2", "y3", "y4", "y5", "y6"],
+        )
 
     # check mathematical correctness
     @test RationalFunctionFields.eval_at_dict(expressions[1], tagdict) == fgens[5]

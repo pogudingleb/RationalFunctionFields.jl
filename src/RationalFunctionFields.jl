@@ -18,7 +18,7 @@ export RationalFunctionField
 
 # membership functions
 export check_algebraicity, field_contains, issubfield, fields_equal
-export check_constructive_field_membership
+export constructive_membership
 
 # simplification
 export simplified_generating_set
