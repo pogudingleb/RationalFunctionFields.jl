@@ -36,6 +36,7 @@ end
                 z // x,
             ],
             :correct => [true, true, true, false],
+            :tag_names => ["A", "x", "123"],
         ),
     )
 
@@ -83,6 +84,7 @@ end
             :funcs => [a, b + c, a * b + b * c],
             :correct => [false, false, false],
             :relations => [],
+            :tag_names => ["a", "b", "C"],
         ),
     )
     push!(
@@ -209,6 +211,7 @@ end
 
     for c in cases
         R = RationalFunctionFields.poly_ring(c[:field])
+        tagnames = get(c, :tag_names, Vector{String}())
         containment, expressions, relations, tag_to_gen =
             RationalFunctionFields.check_constructive_field_membership(
                 c[:field],
@@ -216,8 +219,11 @@ end
             )
         expressions2, tag_to_gen2 = 0, 0
         if any(containment)
-            expressions2, tag_to_gen2 =
-                constructive_membership(c[:field], c[:funcs][containment])
+            expressions2, tag_to_gen2 = constructive_membership(
+                c[:field],
+                c[:funcs][containment],
+                tag_names = tagnames,
+            )
         end
         ind = 1
         @test containment == c[:correct]

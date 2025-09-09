@@ -149,14 +149,11 @@ function check_constructive_field_membership(
     x_ring = poly_ring(rff)
     K = base_ring(x_ring)
     orig_strings = map(string, gens(x_ring))
-    # add extra dummy tags for the elements of the transcendence basis
-    # the idea is that they will not appear in the final expressions anyway
-    tag_strings = if !isempty(tag_names)
-        @assert length(fracs_gen) == length(tag_names)
-        vcat(tag_names, gen_tag_names(length(rff.trbasis_over), "Tag"))
-    else
-        gen_tag_names(length(fracs_gen) + length(rff.trbasis_over), "Tag")
-    end
+    # Add extra dummy tags for the elements of the transcendence basis
+    # the idea is that they will not appear in the final expressions anyway.
+    # We are not using the user-provided tags for the moment in order to avoid
+    # naming clashes, they will be used at the very end.
+    tag_strings = gen_tag_names(length(fracs_gen) + length(rff.trbasis_over), "Tag")
     sat_string = gen_tag_name("Sat")
     @debug """
 Tags:
@@ -262,12 +259,19 @@ $sat_string
         remainders[i] = remainder
     end
 
-    # Cleaning up the "imaginary" tags corresponding to the transcendence basis
-    short_ring_of_tags, tags = polynomial_ring(K, tag_strings[1:length(fracs_gen)])
+    # Cleaning up the "imaginary" tags corresponding to the transcendence basis and
+    # using the user-provided tag names if there are any
+    short_tagstrings = if !isempty(tag_names)
+        @assert length(fracs_gen) == length(tag_names)
+        tag_names
+    else
+        tag_strings[1:length(fracs_gen)]
+    end
+    short_ring_of_tags, tags = polynomial_ring(K, short_tagstrings)
     remainders = map(
         f ->
-            parent_ring_change(numerator(f), short_ring_of_tags) //
-            parent_ring_change(denominator(f), short_ring_of_tags),
+            parent_ring_change(numerator(f), short_ring_of_tags, matching = :byindex) //
+            parent_ring_change(denominator(f), short_ring_of_tags, matching = :byindex),
         remainders,
     )
     new_remainders = Vector{Generic.FracFieldElem{T}}(undef, length(algebraicity))
@@ -276,12 +280,15 @@ $sat_string
         if !algebraicity[j]
             new_remainders[j] = one(short_ring_of_tags) // one(short_ring_of_tags)
         else
-            new_remainders[j] = remainders[i]
+            new_remainders[j] =
+                parent_ring_change(remainders[i], short_ring_of_tags, matching = :byindex)
             i += 1
         end
     end
-    relations_between_tags =
-        map(p -> parent_ring_change(p, short_ring_of_tags), relations_between_tags)
+    relations_between_tags = map(
+        p -> parent_ring_change(p, short_ring_of_tags, matching = :byindex),
+        relations_between_tags,
+    )
     tag_to_gen = Dict(tags[i] => fracs_gen[i] for i = 1:length(fracs_gen))
 
     return merge_results(algebraicity, memberships),
