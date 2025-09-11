@@ -212,12 +212,7 @@ $sat_string
     # NOTE: reduction actually happens in K(T)[x]. So we map polynomials to the
     # parametric ring K(T)[x].
     ring_of_tags, tags = polynomial_ring(K, tag_strings)
-    if !isempty(intersect(tag_strings, orig_strings))
-        @warn """
-    There is an intersection between the names of the tag variables and the original variables.
-    Tags: $tag_strings
-    Original vars: $orig_strings"""
-    end
+    @assert isempty(intersect(tag_strings, orig_strings)) "Variable name collision! $orig_strings vs. $tag_strings"
     parametric_ring, _ = polynomial_ring(
         fraction_field(ring_of_tags),
         orig_strings,
@@ -323,7 +318,7 @@ function constructive_membership(
         check_constructive_field_membership(rff, funcs, tag_names = tag_names)
     @assert all(membership)
     if isempty(tag_names)
-        @info "Names for generators were not provided, so the have been generated as follows:\n" *
+        @info "Names for generators were not provided, so they have been generated as follows:\n" *
               join(["$k = $v" for (k, v) in tag_to_gen], "\n") *
               "\n"
     end

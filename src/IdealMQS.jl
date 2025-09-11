@@ -161,7 +161,6 @@ end
 
 # ------------------------------------------------------------------------------
 
-Base.length(ideal::IdealMQS) = length(ideal.nums_qq) + 1
 AbstractAlgebra.base_ring(ideal::IdealMQS) = base_ring(ideal.nums_qq[1])
 AbstractAlgebra.parent(ideal::IdealMQS) = ideal.parent_ring_param
 ParamPunPam.parent_params(ideal::IdealMQS) = base_ring(ideal.parent_ring_param)
@@ -196,9 +195,7 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     # The hope is that new variables' names would not intersect with the old ones
     old_varnames = map(i -> "y$i", 1:length(varnames))
     new_varnames = map(i -> "__var_$i", 1:(length(varnames)+1))
-    if !isempty(intersect(old_varnames, new_varnames))
-        @warn "Intersection in two sets of variables! $varnames $new_varnames"
-    end
+    @assert isempty(intersect(old_varnames, new_varnames)) "Variable name collision! $varnames vs. $new_varnames"
     # NOTE: new variables go first!
     big_ring, big_vars =
         polynomial_ring(K, vcat(new_varnames, old_varnames), internal_ordering = :lex)
