@@ -8,7 +8,12 @@ Most of the algorithms are Monte-Carlo randomized and allow user to provide a bo
 
 ## How to install
 
-The package can be installed from this repository by
+The package can be installed from the Julia registry by
+```julia
+using Pkg
+Pkg.add("RationalFunctionFields")
+```
+or from this repository by
 
 ```julia
 using Pkg
