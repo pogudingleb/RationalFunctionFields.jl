@@ -1,4 +1,4 @@
-@testset "RationalFunctionField: membership" begin
+@testset "RationalFunctionField: simplification" begin
     cases = []
 
     R, (x, y, z) = Nemo.polynomial_ring(Nemo.QQ, ["x", "y", "z"])
@@ -44,6 +44,8 @@
     )
 
     for c in cases
-        @test Set(simplified_generating_set(c[:field])) == c[:correct]
+        for level in (:standard, :strong)
+            @test Set(simplified_generating_set(c[:field])) == c[:correct]
+        end
     end
 end
