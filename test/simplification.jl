@@ -45,7 +45,7 @@
 
     for c in cases
         for level in (:standard, :strong)
-            @test Set(simplified_generating_set(c[:field])) == c[:correct]
+            @test Set(simplified_generating_set(c[:field], simplify = level)) == c[:correct]
         end
     end
 end

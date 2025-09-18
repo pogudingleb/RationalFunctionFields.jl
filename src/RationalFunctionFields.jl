@@ -3,6 +3,7 @@ module RationalFunctionFields
 # General packages
 using Combinatorics
 using LinearAlgebra
+using Random
 using TimerOutputs
 
 # Algebra packages
