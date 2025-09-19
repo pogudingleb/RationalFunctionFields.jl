@@ -14,7 +14,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
-AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46"
+AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46, 0.47"
 Combinatorics = "1"
 Groebner = "0.9"
 LinearAlgebra = "1.10, 1.11"
