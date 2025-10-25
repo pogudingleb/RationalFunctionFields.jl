@@ -162,7 +162,7 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
             Dict(),
             Dict(),
             Dict(),
-            BlackboxStats(0, 0)
+            BlackboxStats(0, 0),
         )
     end
 end
