@@ -1,6 +1,11 @@
 
 SAT_FACTORIZATION_DEFAULT::Symbol = :none
 
+mutable struct BlackboxStats
+    n_spec_mod_p::Int  # total number of evaluations modulo a prime
+    n_red_mod_p::Int   # total number of reductions modulo a prime
+end
+
 """
     IdealMQS
 
@@ -40,6 +45,8 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
     # Cached GBs. A mapping
     # (monomial ordering, degree) --> a GB
     cached_groebner_bases::Dict{Any,Any}
+
+    stats::BlackboxStats
 
     """
         IdealMQS(funcs_den_nums::Vector{Vector})
@@ -155,6 +162,7 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
             Dict(),
             Dict(),
             Dict(),
+            BlackboxStats(0, 0)
         )
     end
 end
@@ -248,6 +256,7 @@ function ParamPunPam.reduce_mod_p!(
     mqs.cached_nums_gf[ff] = nums_gf
     mqs.cached_dens_gf[ff] = dens_gf
     mqs.cached_const_polys_gf[ff] = const_polys_gf
+    mqs.stats.n_red_mod_p += 1
     return nothing
 end
 
@@ -301,6 +310,7 @@ function ParamPunPam.specialize_mod_p(
     @assert length(point) == nvars(ParamPunPam.parent_params(mqs))
     result = fractions_to_mqs_specialized(nums_gf, dens_gf, extend_point(point, mqs))
     append!(result, const_polys_gf)
+    mqs.stats.n_spec_mod_p += 1
     return result
 end
 
