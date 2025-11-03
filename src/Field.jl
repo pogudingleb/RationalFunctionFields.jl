@@ -428,4 +428,3 @@ function fields_equal(
     new_p = 1 - (1 - prob_threshold) / 2
     return issubfield(F, E, new_p) && issubfield(E, F, new_p)
 end
-

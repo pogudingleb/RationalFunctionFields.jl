@@ -43,6 +43,43 @@
         ),
     )
 
+    R, (k01, k12, k13, k21, k31) = polynomial_ring(QQ, ["k01", "k12", "k13", "k21", "k31"])
+    push!(
+        cases,
+        Dict(
+            :field => RationalFunctionField([
+                k01*k12 + k01*k13 + k12*k13 + k12*k31 + k13*k21,
+                -k12 - k13,
+                k01*k12*k13,
+                k01 + k12 + k13 + k21 + k31,
+                -k12*k13,
+            ]),
+            :correct => Set([
+                k01 // one(R),
+                k21 + k31 // one(R),
+                k12 + k13 // one(R),
+                k21*k31 // one(R),
+                k12*k13 // one(R),
+                k12*k31 + k13*k21 // one(R),
+            ]),
+        ),
+    )
+    # the returned set is redundant (but more interpretable), checking if minimality is efficiently enforced
+    println(
+        simplified_generating_set(
+            cases[end][:field],
+            simplify = :standard,
+            enforce_minimality = true,
+        ),
+    )
+    @test length(
+        simplified_generating_set(
+            cases[end][:field],
+            simplify = :standard,
+            enforce_minimality = true,
+        ),
+    ) == 5
+
     for c in cases
         for level in (:standard, :strong)
             @test Set(simplified_generating_set(c[:field], simplify = level)) == c[:correct]

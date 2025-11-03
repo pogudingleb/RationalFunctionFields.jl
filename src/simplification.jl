@@ -10,12 +10,18 @@ inclusion. The inclusion checks are carried out modulo the provided prime `p`
 """
 function minimize_modp(fracs, prime = 2^31 - 1)
     new_fracs = copy(fracs)
-    for i in length(fracs):-1:1
-        leave_one_out = vcat(new_fracs[1:(i - 1)], new_fracs[(i + 1):end])
+    for i = length(fracs):-1:1
+        leave_one_out = vcat(new_fracs[1:(i-1)], new_fracs[(i+1):end])
         if isempty(leave_one_out) && !isconstant(RationalFunctionField(new_fracs))
             return new_fracs
         end
-        if first(field_contains_modp(RationalFunctionField(leave_one_out, [new_fracs[i]], prime)))
+        if first(
+            field_contains_mod_p(
+                RationalFunctionField(leave_one_out),
+                [new_fracs[i]],
+                prime,
+            ),
+        )
             new_fracs = leave_one_out
         end
     end
