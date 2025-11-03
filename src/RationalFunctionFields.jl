@@ -31,6 +31,7 @@ include("IdealMQS.jl")
 include("Field.jl")
 include("rankings.jl")
 include("normalforms.jl")
+include("simplification.jl")
 include("constructive_membership.jl")
 
 end
