@@ -11,13 +11,9 @@
         ),
     )
 
-    r1 = simplified_generating_set(cases[end][:field], return_all=false)
-    r2 = simplified_generating_set(cases[end][:field], return_all=true)
-    @test fields_equal(
-        RationalFunctionField(r1),
-        RationalFunctionField(r2),
-	0.9999
-    )
+    r1 = simplified_generating_set(cases[end][:field], return_all = false)
+    r2 = simplified_generating_set(cases[end][:field], return_all = true)
+    @test fields_equal(RationalFunctionField(r1), RationalFunctionField(r2), 0.9999)
 
     # this does not pass as it finds a fraction with lower degree but many terms, maybe this one should be considered simpler
     # push!(

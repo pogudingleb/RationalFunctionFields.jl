@@ -325,7 +325,7 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
     check_variables = false, # almost always slows down and thus turned off
     rational_interpolator = :VanDerHoevenLecerf,
     priority_variables = [],
-    return_all = false
+    return_all = false,
 )
     if isconstant(rff)
         return empty([one(poly_ring(rff)) // one(poly_ring(rff))])
