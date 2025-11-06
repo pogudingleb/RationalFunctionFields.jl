@@ -725,6 +725,7 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
     check_variables = false, # almost always slows down and thus turned off
     rational_interpolator = :VanDerHoevenLecerf,
     priority_variables = [],
+    return_all = false
 )
     if isconstant(rff)
         return empty([one(poly_ring(rff)) // one(poly_ring(rff))])
@@ -799,12 +800,15 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
     @debug """
 Final cleaning and simplification of generators. 
 Out of $(length(new_fracs)) fractions $(length(new_fracs_unique)) are syntactically unique."""
-    start_time = time_ns()
-    runtime = @elapsed new_fracs = beautiful_generators(
-        RationalFunctionField(new_fracs_unique),
-        priority_variables = priority_variables,
-    )
-    @info "Selecting generators in $((time_ns() - start_time) / 1e9)"
+    new_fracs = new_fracs_unique
+    if !return_all
+      start_time = time_ns()
+      runtime = @elapsed new_fracs = beautiful_generators(
+          RationalFunctionField(new_fracs_unique),
+          priority_variables = priority_variables,
+      )
+      @info "Selecting generators in $((time_ns() - start_time) / 1e9)"
+    end
     @debug "Checking inclusion with probability $prob_threshold"
     runtime = @elapsed result =
         fields_equal(rff, RationalFunctionField(new_fracs), prob_threshold)
