@@ -13,12 +13,6 @@ The package can be installed from the Julia registry by
 using Pkg
 Pkg.add("RationalFunctionFields")
 ```
-or from this repository by
-
-```julia
-using Pkg
-Pkg.add(url = "https://github.com/pogudingleb/RationalFunctionFields.jl.git")
-```
 
 ## Basic usage
 
