@@ -198,7 +198,9 @@ end
         runtime = (time_ns() - time_start) / 1e9
         #_runtime_logger[:id_inclusion_check_mod_p] += runtime
         @debug "Inclusion checked in $(runtime) seconds. Result: $two_sided_inclusion"
-        current_degrees = current_degrees .* (2, 2)
+        # delta = current_degrees[1] > current_degrees[2] ? (0,1) : (1,0) 
+        delta = (2,2)
+        current_degrees = current_degrees .* delta
     end
     @debug "The coefficients of the Groebner basis are presented by $(length(fracs)) rational functions"
     new_rff.mqs.cached_groebner_bases[ordering, up_to_degree] = gb
