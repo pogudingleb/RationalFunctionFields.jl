@@ -196,37 +196,34 @@ end
 # ------------------------------------------------------------------------------
 
 function fractionfree_generators_raw(mqs::IdealMQS)
-    # TODO: this assumes mqs.sat_var_index is last, and thus is broken
-    ring_params = ParamPunPam.parent_params(mqs)
-    K = base_ring(ring_params)
-    varnames = map(string, Nemo.symbols(ring_params))
-    # The hope is that new variables' names would not intersect with the old ones
-    old_varnames = map(i -> "y$i", 1:length(varnames))
-    new_varnames = map(i -> "__var_$i", 1:(length(varnames)+1))
-    @assert isempty(intersect(old_varnames, new_varnames)) "Variable name collision! $varnames vs. $new_varnames"
-    # NOTE: new variables go first!
+    ring_orig = ParamPunPam.parent_params(mqs)
+    varnames_params = map(string, Nemo.symbols(ring_orig))
+    varnames_indets = map(string, Nemo.symbols(mqs.parent_ring_param))
+    @info "Parameter names: $varnames_params"
+    @info "Indeterm. names: $varnames_indets"
+    @assert isempty(intersect(varnames_params, varnames_indets))
     big_ring, big_vars =
-        polynomial_ring(K, vcat(new_varnames, old_varnames), internal_ordering = :lex)
-    @info "$(mqs.sat_var_indices) $(varnames) $ring_params $(parent(first(mqs.const_polys)))"
+        polynomial_ring(base_ring(ring_orig), vcat(varnames_indets, varnames_params), internal_ordering = :lex)
+    indets = big_vars[1:length(varnames_indets)]
+    params = big_vars[length(varnames_indets)+1:end]
     nums_qq, dens_qq, const_polys = mqs.nums_qq, mqs.dens_qq, mqs.const_polys
-    nums_y = map(num -> parent_ring_change(num, big_ring, matching = :byindex), nums_qq)
-    dens_y = map(den -> parent_ring_change(den, big_ring, matching = :byindex), dens_qq)
+    nums_y = map(num -> parent_ring_change(num, big_ring, matching = :byname), nums_qq)
+    dens_y = map(den -> parent_ring_change(den, big_ring, matching = :byname), dens_qq)
     const_polys_y =
-        map(p -> parent_ring_change(p, big_ring, matching = :byindex), const_polys)
-    nums_x = map(num -> parent_ring_change(num, big_ring, matching = :byname), nums_qq)
-    dens_x = map(den -> parent_ring_change(den, big_ring, matching = :byname), dens_qq)
+        map(p -> parent_ring_change(p, big_ring, matching = :byname), const_polys)
+    subs = extend_point(params, mqs)
+    nums_x = map(num -> evaluate(num, subs), nums_qq)
+    dens_x = map(den -> evaluate(den, subs), dens_qq)
     polys = Vector{elem_type(big_ring)}(undef, length(nums_qq) + length(const_polys))
-    @inbounds for i = 1:length(dens_qq)
+    for i = 1:length(dens_qq)
         den_y, den_x = dens_y[i], dens_x[i]
         num_y, num_x = nums_y[i], nums_x[i]
         polys[i] = num_y * den_x - den_y * num_x
     end
-    @inbounds for i = 1:length(const_polys)
+    for i = 1:length(const_polys)
         polys[length(nums_qq)+i] = const_polys_y[i]
     end
-    main_var_indices = 1:(length(varnames)+1)
-    param_var_indices = (length(varnames)+2):length(big_vars)
-    return polys, main_var_indices, param_var_indices
+    return (sys=polys, indets=indets, params=params)
 end
 
 # ------------------------------------------------------------------------------
