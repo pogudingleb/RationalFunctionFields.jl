@@ -203,10 +203,13 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     @info "Indeterm. names: $varnames_indets"
     @assert allunique(varnames_params) && allunique(varnames_indets)
     @assert isempty(intersect(varnames_params, varnames_indets))
-    big_ring, big_vars =
-        polynomial_ring(base_ring(ring_orig), vcat(varnames_indets, varnames_params), internal_ordering = :lex)
+    big_ring, big_vars = polynomial_ring(
+        base_ring(ring_orig),
+        vcat(varnames_indets, varnames_params),
+        internal_ordering = :lex,
+    )
     indets = big_vars[1:length(varnames_indets)]
-    params = big_vars[length(varnames_indets)+1:end]
+    params = big_vars[(length(varnames_indets)+1):end]
     nums_qq, dens_qq, const_polys = mqs.nums_qq, mqs.dens_qq, mqs.const_polys
     nums_y = map(num -> parent_ring_change(num, big_ring, matching = :byname), nums_qq)
     dens_y = map(den -> parent_ring_change(den, big_ring, matching = :byname), dens_qq)
@@ -224,7 +227,7 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     for i = 1:length(const_polys)
         polys[length(nums_qq)+i] = const_polys_y[i]
     end
-    return (sys=polys, indets=indets, params=params)
+    return (sys = polys, indets = indets, params = params)
 end
 
 # ------------------------------------------------------------------------------
