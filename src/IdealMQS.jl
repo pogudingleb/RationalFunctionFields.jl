@@ -201,6 +201,7 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     varnames_indets = map(string, Nemo.symbols(mqs.parent_ring_param))
     @info "Parameter names: $varnames_params"
     @info "Indeterm. names: $varnames_indets"
+    @assert allunique(varnames_params) && allunique(varnames_indets)
     @assert isempty(intersect(varnames_params, varnames_indets))
     big_ring, big_vars =
         polynomial_ring(base_ring(ring_orig), vcat(varnames_indets, varnames_params), internal_ordering = :lex)

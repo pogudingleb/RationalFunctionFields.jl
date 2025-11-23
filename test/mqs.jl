@@ -1,17 +1,23 @@
 @testset "MQS raw ideal generators" begin
-    R, (a, b, c) = QQ["a", "b", "c"]
+    # name collision
+    _, (x, y1) = QQ["x", "y1"]
+    funcs = [[x, y1]]
+    mqs = IdealMQS(funcs)
+    @test_throws AssertionError fractionfree_generators_raw(mqs)
+
+    R, (a, b, c, x) = QQ["a", "b", "c", "x(t)"]
     funcs = [[R(1), R(1)]]
     mqs = IdealMQS(funcs)
     sys, _ = fractionfree_generators_raw(mqs)
     @test sys == [parent(sys[1])(0)]
-    
-    funcs = [[R(1), a], [b, a + c, c^2, b]]
+
+    funcs = [[R(1), x], [b, a + c, c^2, b]]
     mqs = IdealMQS(funcs)
     sys, indets, params = fractionfree_generators_raw(mqs)
-    (t1,y1,y2,y3) = indets
-    (a,b,c) = params
+    (t1,y1,y2,y3,y4) = indets
+    (a,b,c,x) = params
     @test sys == [
-        y1 - a,
+        y4 - x,
         -(a+c)*y2 + b*(y1+y3),
         -c^2*y2 + b*y3^2,
         parent(t1)(0),
