@@ -1,0 +1,150 @@
+using Revise
+using StructuralIdentifiability, RationalFunctionFields, Nemo
+
+include("i4-boku.jl")
+include("param-2.jl")
+include("moments3.jl")
+
+# get `benchmarks`
+include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmarking", "benchmarks.jl"))
+
+function sys_from_funcs(funcs)
+    rff = RationalFunctionFields.RationalFunctionField(funcs);
+    sys = RationalFunctionFields.fractionfree_generators_raw(rff.mqs)
+    sys, y, x = (sys.sys, sys.indets, sys.params)
+    sys = filter(!iszero, sys)
+    sys, y, x
+end
+
+function sys_from_ode(ode; with_states=false)
+    ode = ode[:ode]
+    funcs = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=with_states)[1]
+    sys_from_funcs(funcs)
+end
+
+systems = []
+
+for name in [:HIV, :Goodwin, :St, :Bilirubin, :MAPK_5out, :Pharm, :Akt]
+    push!(systems, Dict(:name => name, :system => sys_from_ode(benchmarks[name])))
+end
+
+push!(systems, Dict(:name => :moments3, :system => sys_from_funcs(moments3())))
+
+push!(systems, Dict(:name => :SLIQR, :system => sys_from_ode(benchmarks[:SLIQR], with_states=true)))
+
+push!(systems, Dict(:name => :i4_boku, :system => i4_boku()))
+
+push!(systems, Dict(:name => :param2, :system => param2()))
+
+templates = Dict(
+    "f4-direct" => 
+"""
+using Groebner, Nemo
+include(joinpath(@__DIR__, "..", "parser.jl"))
+include(joinpath(@__DIR__, "..", "utils.jl"))
+    
+P, _ = polynomial_ring(Nemo.QQ, [{{:x}}])
+R, _ = polynomial_ring(fraction_field(P), [{{:y}}])
+
+big_ring, ({{y}}, {{x}}) = polynomial_ring(QQ, [{{:y}}, {{:x}}])
+
+system = map(s -> parse_poly(big_ring, s), [{{sys_str}}])
+
+varmap = Dict((({{y}}) .=> gens(R))..., (({{x}}) .=> gens(P))...)
+system = map(f -> eval_at_dict(f, varmap), system)
+    
+@time gb = groebner(system, ordering=DegRevLex())
+
+for f in gb println(f) end
+""",
+
+    "f4-flat" => 
+"""
+using Groebner, Nemo
+include(joinpath(@__DIR__, "..", "parser.jl"))
+
+R, ({{y}}, {{x}}) = polynomial_ring(QQ, [{{:y}}, {{:x}}])
+
+system = map(s -> parse_poly(R, s), [{{sys_str}}])
+
+@time gb = groebner(system, ordering=DegRevLex({{y}})*DegRevLex({{x}}))
+
+for f in gb println(f) end
+""",
+
+    "paramgb" =>
+"""
+using ParamPunPam, Nemo
+include(joinpath(@__DIR__, "..", "parser.jl"))
+include(joinpath(@__DIR__, "..", "utils.jl"))
+    
+P, _ = polynomial_ring(Nemo.QQ, [{{:x}}])
+R, _ = polynomial_ring(fraction_field(P), [{{:y}}])
+
+big_ring, ({{y}}, {{x}}) = polynomial_ring(QQ, [{{:y}}, {{:x}}])
+
+system = map(s -> parse_poly(big_ring, s), [{{sys_str}}])
+
+varmap = Dict((({{y}}) .=> gens(R))..., (({{x}}) .=> gens(P))...)
+system = map(f -> eval_at_dict(f, varmap), system)
+    
+@time gb = paramgb(system, ordering=DegRevLex());
+
+for f in gb println(f) end
+""",
+    
+    "ffmodstd" =>
+"""
+LIB "ffmodstd.lib";
+
+ring R=(0, {{x}}),({{y}}),dp;
+ideal I = {{sys}};
+
+int t=timer;
+ffmodStd(I);
+print(timer-t);
+
+quit;
+""",
+
+    "slimgb" =>
+"""
+ring R=(0, {{x}}),({{y}}),dp;
+ideal I = {{sys}};
+
+int t=timer;
+slimgb(I);
+print(timer-t);
+
+quit;
+""",
+)
+
+method_ext = Dict("f4-direct" => ".jl", "f4-flat" => ".jl", "paramgb" => ".jl", "ffmodstd" => ".sing", "slimgb" => ".sing")
+
+function foo()
+    for system in systems
+        name, sys = system[:name], system[:system]
+        sys, y, x = sys
+        subs = (
+            "{{x}}"  => join(map(string, x), ","),
+            "{{y}}"  => join(map(string, y), ","),
+            "{{:x}}" => join(map(f -> string(":", f), x), ","),
+            "{{:y}}" => join(map(f -> string(":", f), y), ","),
+            "{{sys}}" => join(map(string, sys), ","),
+            "{{sys_str}}" => join(map(f -> "\""*string(f)*"\"", sys), ","),
+        )
+        for method in collect(keys(templates))
+            content = replace(templates[method], subs...)
+            @assert !occursin("{{", content)
+            file_name = string(name, method_ext[method])
+            file_path = joinpath(@__DIR__, method, file_name)
+            open(file_path, "w") do io
+                println(io, content)
+            end
+        end
+    end
+end
+
+foo()
+
