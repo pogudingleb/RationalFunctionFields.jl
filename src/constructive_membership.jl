@@ -211,7 +211,7 @@ $sat_string
     #
     # NOTE: reduction actually happens in K(T)[x]. So we map polynomials to the
     # parametric ring K(T)[x].
-    ring_of_tags, tags = polynomial_ring(K, tag_strings)
+    ring_of_tags, tags = polynomial_ring(K, tag_strings, internal_ordering = :degrevlex)
     @assert isempty(intersect(tag_strings, orig_strings)) "Variable name collision! $orig_strings vs. $tag_strings"
     parametric_ring, _ = polynomial_ring(
         fraction_field(ring_of_tags),
