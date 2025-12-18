@@ -13,9 +13,9 @@ Output: an array of fractions
 function dennums_to_fractions(dennums::Vector{Vector{T}}) where {T}
     fractions = Vector{AbstractAlgebra.Generic.FracFieldElem{T}}()
     for dni in dennums
-        pivot_ind = findmin(p -> (total_degree(p), length(p)), filter(!iszero, dni))[2]
-        pivot = dni[pivot_ind]
-        append!(fractions, [c // pivot for c in dni if c != pivot])
+        #pivot_ind = findmin(p -> (total_degree(p), length(p)), filter(!iszero, dni))[2]
+        #pivot = dni[pivot_ind]
+        append!(fractions, [c // dni[1] for c in dni[2:end]])
     end
     return fractions
 end

@@ -209,6 +209,50 @@ end
         ),
     )
 
+    # test which was failing when the ordering for reduction in the tag ring was not specified
+    R, (alpha, beta_I, beta_W, gamma, zeta) =
+        polynomial_ring(Nemo.QQ, ["alpha", "beta_I", "beta_W", "gamma", "zeta"])
+    push!(
+        cases,
+        Dict(
+            :field => RationalFunctionField([
+                one(R) // one(R),
+                -one(R) // one(R),
+                -beta_I//alpha,
+                (alpha*beta_W + beta_I*zeta)//beta_I,
+                (-beta_I*gamma - beta_I*zeta)//alpha,
+                (-alpha*beta_W - beta_I*zeta)//beta_I,
+                (-2*alpha*beta_W - 2*beta_I*zeta)//alpha,
+                (alpha*beta_W*gamma + alpha*beta_W*zeta + beta_I*zeta^2)//beta_I,
+                (-alpha*beta_W*gamma - alpha*beta_W*zeta - beta_I*zeta^2)//beta_I,
+                (
+                    -alpha^2*beta_W^2 - 2*alpha*beta_I*beta_W*zeta - beta_I^2*zeta^2
+                )//(alpha*beta_I),
+                (
+                    -alpha^2*beta_W^2*gamma*zeta - 2*alpha*beta_I*beta_W*gamma*zeta^2 -
+                    beta_I^2*gamma*zeta^3
+                )//(alpha*beta_I),
+                (
+                    -2*alpha*beta_W*gamma - 2*alpha*beta_W*zeta - 3*beta_I*gamma*zeta -
+                    2*beta_I*zeta^2
+                )//alpha,
+                (
+                    -alpha^2*beta_W^2*gamma - alpha^2*beta_W^2*zeta -
+                    4*alpha*beta_I*beta_W*gamma*zeta - 2*alpha*beta_I*beta_W*zeta^2 -
+                    3*beta_I^2*gamma*zeta^2 - beta_I^2*zeta^3
+                )//(alpha*beta_I),
+            ]),
+            :funcs => [
+                gamma + zeta,
+                gamma*zeta,
+                alpha//beta_I,
+                (alpha*beta_W + beta_I*zeta)//beta_I,
+            ],
+            :correct => [true, true, true, true],
+        ),
+    )
+
+
     for c in cases
         R = RationalFunctionFields.poly_ring(c[:field])
         tagnames = get(c, :tag_names, Vector{String}())

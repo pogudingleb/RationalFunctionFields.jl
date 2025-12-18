@@ -17,6 +17,9 @@ ParamPunPam.enable_progressbar(false)
 
 export RationalFunctionField
 
+# helper functions
+export generators
+
 # membership functions
 export check_algebraicity, field_contains, issubfield, fields_equal
 export constructive_membership
