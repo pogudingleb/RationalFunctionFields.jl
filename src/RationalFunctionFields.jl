@@ -27,6 +27,8 @@ export constructive_membership
 # simplification
 export simplified_generating_set
 
+export IdealMQS, fractionfree_generators_raw
+
 const _to = TimerOutputs.TimerOutput()
 
 include("util.jl")
