@@ -1,6 +1,6 @@
 # Paper
 
-This directory contains the sources of examples, experiments, and data for the paper TODO.
+This directory contains the sources of examples, experiments, and data, for the paper from TODO.
 
 ## Data
 

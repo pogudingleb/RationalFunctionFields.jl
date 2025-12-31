@@ -205,6 +205,34 @@ function foo_julia_and_maple(filename, columns)
     results
 end
 
+function foo_julia_original_generators(columns)
+    results = []
+    for name in keys(benchmarks)
+        if any(s -> occursin(s, string(name)), skipped)
+            @error "Skipping $name"
+            continue
+        end
+        common = Dict(:name => name)
+        initial_funcs = nothing
+        output_filepath = joinpath(@__DIR__, prefix, "input_stats", string(name, "_initial_funcs.txt"))
+        if ispath(output_filepath)
+            if filesize(output_filepath) < 2^21 # 2 MB
+                open(output_filepath, "r") do io
+                    content = read(io, String)
+                    content = chopprefix(content, "AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}")
+                    initial_funcs = content
+                end
+            end
+        end
+        result = merge(common, Dict(:original_funcs => initial_funcs))
+        push!(results, result)
+    end
+
+    results = sort(results, by=x -> x[:name])
+    
+    results
+end
+
 function foo_gens_stats(filename, columns)
     results = []
     for name in keys(benchmarks)
@@ -430,7 +458,7 @@ function print_huge_data_to_data_1(
         model_path = joinpath(path, replace(string(result[:name]), " " => "_", "." => "_"))
         !ispath(model_path) && mkdir(model_path)
         content = result[column]
-        if length(content) > size_limit
+        if content == nothing || length(content) > size_limit
             continue
         end
         open(joinpath(model_path, filename), "w") do io
@@ -446,8 +474,8 @@ results1 = foo_julia_and_maple("table_funcs_julia_and_maple_fan.md", columns)
 print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
 
 columns = [:name, :original_funcs]
-# results11 = foo_julia_original_generators(columns)
-# print_original_to_data_1(results1)
+results11 = foo_julia_original_generators(columns)
+print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
 
 columns = [:name, :julia_time, :maple_time]
 table2 = foo_julia_and_maple("table_time_julia_and_maple_fan.md", columns)

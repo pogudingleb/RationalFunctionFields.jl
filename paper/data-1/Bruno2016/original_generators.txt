@@ -1,0 +1,2 @@
+[kbeta10 + kcryOH + kcrybeta, kbeta^2 - kbeta*kcryOH - kbeta*kcrybeta, kbeta10*kcryOH + kbeta10*kcrybeta, kbeta]
+

@@ -9,10 +9,10 @@ skipped = ['NFkB', 'Covid2', 'Akt', 'TumorPillis', 'TumorHu', 'LeukaemiaLeon2021
 
 DIRS    = {
     '1' : [
-        'bench1/f4-direct', 'bench1/f4-flat', 'bench1/ffmodstd', 'bench1/paramgb', 'bench1/slimgb'
+        'experiment-1/f4-direct', 'experiment-1/f4-flat', 'experiment-1/ffmodstd', 'experiment-1/paramgb', 'experiment-1/slimgb'
     ],
     '3' : [
-    'bench3/results'
+    'experiment-3/results'
     ]
 }
 ext_to_software = {

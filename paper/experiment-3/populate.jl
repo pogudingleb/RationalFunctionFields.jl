@@ -93,6 +93,7 @@ include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmark
     
 name = :{{name}}
 with_states = {{with_states}}
+print_initial_funcs = {{print_initial_funcs}}
 ode = benchmarks[name][:ode]
 
 funcs = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=with_states)[1]
@@ -104,6 +105,13 @@ open(joinpath(@__DIR__, filename), "w") do io
     println(io, "length(...), map(length, ...) = ", length(funcs), ", ", map(length, funcs))
     
     fracs = RationalFunctionFields.dennums_to_fractions(funcs)
+
+    if print_initial_funcs
+        open(joinpath(@__DIR__, string(name, "_initial_funcs.txt")), "w") do io2
+            println(io2, fracs)
+        end
+    end
+        
     println(io, "\n>>>\n\nformat [num/den] (filter out constants)")
     fracs = filter(f -> (total_degree(numerator(f)) + total_degree(denominator(f))) > 0, fracs)
     println(io, "length(string(...)) = ", length(string(fracs)))
@@ -178,6 +186,7 @@ function foo()
                 "{{name}}"  => string(name),
                 "{{with_states}}"  => "false",
                 "{{dir}}" => joinpath(@__DIR__, prefix, method_name),
+                "{{print_initial_funcs}}" => "true"
             )
             for (script_name, script_template) in method_scripts
                 content = replace(script_template, subs...)

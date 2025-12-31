@@ -1,0 +1,2 @@
+[(-L*b*e + N*e*g*m + N*e*m^2 + N*g*m^2 + N*m^3)//N, e*m + g*m + 2*m^2, -e - g - 2*m, -1, (b*e*r + b*g*r + 2*b*m*r)//(K*N), e + g + 3*m, (b*e*g*r + b*e*m*r + b*g*m*r + b*m^2*r)//(K*N), (b*r)//(K*N)]
+

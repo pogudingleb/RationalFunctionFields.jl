@@ -1,0 +1,2 @@
+[d, -s, b, -b*k2*q2*s + c*k1*w2 + c*w1*w2, c*k1 + c*w1 + c*w2 + k1*w2 + w1*w2, b^2*k2*q2, b*d*k2*q2 - b*k1*k2*q1 - b*k1*k2*q2 - b*k2*q2*w1, -b*k2*q2, c + k1 + w1 + w2]
+
