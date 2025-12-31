@@ -446,6 +446,20 @@ function make_nice_latex_table(filename, columns, results)
     table
 end
 
+function merge_by_name(results_lists...)
+    results = []
+    for result in results_lists[1]
+        name = result[:name]
+        for ress in results_lists[2:end]
+            found = findall(res -> res[:name] == name, ress)
+            isempty(found) && continue
+            result = merge(result, only(ress[found]))
+        end
+        push!(results, result)
+    end
+    results
+end
+
 function print_huge_data_to_data_1(
         results; 
         filename = nothing,
@@ -467,49 +481,41 @@ function print_huge_data_to_data_1(
     end
 end
 
-
-
-columns = [:name, :julia_funcs]
-results1 = foo_julia_and_maple("table_funcs_julia_and_maple_fan.md", columns)
-print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
-
-columns = [:name, :original_funcs]
-results11 = foo_julia_original_generators(columns)
-print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
-
-columns = [:name, :julia_time, :maple_time]
-table2 = foo_julia_and_maple("table_time_julia_and_maple_fan.md", columns)
-
-columns = [
-        :name, :elems, :bytes, :max_deg,
-        # :min_deg,
-        :max_terms,
-        # :min_terms,
-        :vars,
-        :min_deg_per_var,
-        :min_gen_deg_per_var,
-    ]
-results2 = foo_gens_stats("table_input_stats.md", columns)
-
-results3 = foo_independence("table_independence.md", [:name, :independent])
-
-results4 = foo_get_maple_input_gens()
-
-function merge_by_name(results_lists...)
-    results = []
-    for result in results_lists[1]
-        name = result[:name]
-        for ress in results_lists[2:end]
-            found = findall(res -> res[:name] == name, ress)
-            isempty(found) && continue
-            result = merge(result, only(ress[found]))
-        end
-        push!(results, result)
+function main()
+    task = :all
+    if !isempty(ARGS)
+        task = ARGS[1]
     end
-    results
+    
+    columns = [:name, :julia_funcs]
+    results1 = foo_julia_and_maple("table_funcs_julia_and_maple_fan.md", columns)
+    print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
+    
+    columns = [:name, :original_funcs]
+    results11 = foo_julia_original_generators(columns)
+    print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
+    
+    columns = [:name, :julia_time, :maple_time]
+    table2 = foo_julia_and_maple("table_time_julia_and_maple_fan.md", columns)
+    
+    columns = [
+            :name, :elems, :bytes, :max_deg,
+            # :min_deg,
+            :max_terms,
+            # :min_terms,
+            :vars,
+            :min_deg_per_var,
+            :min_gen_deg_per_var,
+        ]
+    results2 = foo_gens_stats("table_input_stats.md", columns)
+    
+    results3 = foo_independence("table_independence.md", [:name, :independent])
+    
+    results4 = foo_get_maple_input_gens()
+    
+    results = merge_by_name(results1,results2,results3,results4)
+    table11 = make_nice_latex_table("table.tex", columns, results)
+
 end
 
-results = merge_by_name(results1,results2,results3,results4)
-table11 = make_nice_latex_table("table.tex", columns, results)
-
-nothing
+main()

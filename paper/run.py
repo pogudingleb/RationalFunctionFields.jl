@@ -7,14 +7,6 @@ import sys
 
 skipped = ['NFkB', 'Covid2', 'Akt', 'TumorPillis', 'TumorHu', 'LeukaemiaLeon2021', 'MAPK_5out_bis', 'cLV2', 'QWWC']
 
-DIRS    = {
-    '1' : [
-        'experiment-1/f4-direct', 'experiment-1/f4-flat', 'experiment-1/ffmodstd', 'experiment-1/paramgb', 'experiment-1/slimgb'
-    ],
-    '3' : [
-    'experiment-3/results'
-    ]
-}
 ext_to_software = {
     '.jl': 'julia', 
     '.sing': 'Singular --cpus=1 --ticks-per-sec=1000',
@@ -22,11 +14,11 @@ ext_to_software = {
 }
 
 def pattern_occurs(pattern, string):
-    conjunctions = pattern.split("&")
-    for c in conjunctions:
-        disjunctions = c.split("|")
+    conj = pattern.split("&")
+    for c in conj:
+        disj = c.split("|")
         holds = False
-        for d in disjunctions:
+        for d in disj:
             d = d.strip()
             if d in string:
                 holds = True
@@ -34,29 +26,30 @@ def pattern_occurs(pattern, string):
             return False
     return True
 
-def main(args):
-    all_files = []
-    for directory_path in DIRS[args.bench]:
-        if not os.path.exists(directory_path):
-            continue
-        for root, dirs, files in os.walk(directory_path):
-            if pattern_occurs(".ipynb", root):
-                continue
-            for file in files:
-                if not os.path.splitext(file)[1] in ext_to_software.keys():
-                    continue
-                full_path = os.path.join(root, file)
-                if not pattern_occurs(args.pattern, full_path):
-                    continue
-                skip = False
-                for name in skipped:
-                    if pattern_occurs(name, full_path):
-                        print(f'Skipping {full_path}')
-                        skip = True
-                if skip:
-                    continue
-                all_files.append(full_path)
+def walk(args, path):
+    if not os.path.exists(path):
+        return []
+    if pattern_occurs(".ipynb", path):
+        return []
+    if os.path.isfile(path):
+        filename = os.path.basename(path)
+        if not os.path.splitext(filename)[1] in ext_to_software.keys():
+            return []
+        if not pattern_occurs(args.pattern, path):
+            return []
+        for name in skipped:
+            if pattern_occurs(name, path):
+                print(f'Skipping {path}')
+                return []
+        return [path]
+    else:
+        experience = []
+        for fork in os.listdir(path):
+            experience += walk(args, os.path.join(path, fork))
+        return experience
     
+def main(args):
+    all_files = walk(args, os.getcwd())
     print("Will be running these files: ", all_files)
     
     for i, file_path in enumerate(all_files):
@@ -84,10 +77,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-b", "--bench", default='3', 
-                    help='Benchmark to run.')
     parser.add_argument("-p", "--pattern", default="", 
-                    help='Optional pattern to filter.')
+                    help='Pattern to filter. The format is CNF, the syntax is & and |.')
     parser.add_argument("-t", "--timeout", default="60", 
                     help='Timeout, in seconds.')
     parser.add_argument("-m", "--memory", default="20", 
