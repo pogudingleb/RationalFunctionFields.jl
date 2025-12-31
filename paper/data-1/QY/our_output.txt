@@ -1,0 +1,1 @@
+[alpa, Mar, Ks, M + siga1 + siga2, (Mar - siga1)//phi, M*siga1 + M*siga2 + siga1*siga2, M*siga1*siga2, (M*phi*siga2 - M*siga2)//beta_SA, (Ks*beta_SA + M*beta_SA - 1//3*Mar*beta_SA*phi + 1//3*Mar*beta_SA + 1//3*beta_SA*phi*siga2 + 2//3*beta_SA*siga1 + 2//3*beta_SA*siga2 - 1//3*beta_SI*phi*siga2 + 1//3*beta_SI*siga2)//beta_SA]

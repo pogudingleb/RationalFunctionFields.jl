@@ -1,0 +1,1 @@
+[gamma1110, gamma1101, gamma1100, gamma1000, gamma0100, c1011, c0111, c0011, c0010, c0001, beta11, beta10, beta01, b10, b01, b00, alpha11, alpha10, alpha01, a10, a01, a00]

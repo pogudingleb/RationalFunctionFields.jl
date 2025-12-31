@@ -9,7 +9,7 @@ skipped = ['NFkB', 'Covid2', 'Akt', 'TumorPillis', 'TumorHu', 'LeukaemiaLeon2021
 
 DIRS    = {
     '1' : [
-        'bench1/f4-direct', 'bench1/f4-direct', 'bench1/f4-direct', 'bench1/f4-direct', 'bench1/f4-direct'
+        'bench1/f4-direct', 'bench1/f4-flat', 'bench1/ffmodstd', 'bench1/paramgb', 'bench1/slimgb'
     ],
     '3' : [
     'bench3/results'

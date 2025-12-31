@@ -1,0 +1,1 @@
+[r1, d + r3, a + h + r2 + s, a*h + a*r2 + h*s + r2*s, (d*h*s)//(a*c1 + c2*s), (a*c1*h + a*c1*r2 + c2*r1*s)//(a*c1 + c2*s)]

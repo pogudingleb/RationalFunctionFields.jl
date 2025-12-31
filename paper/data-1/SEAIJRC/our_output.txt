@@ -1,0 +1,1 @@
+[k, g2, g1, b, alpha, (q*r - q)//r]

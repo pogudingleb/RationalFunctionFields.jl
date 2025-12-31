@@ -1,0 +1,1 @@
+[s_T, r, k_T, d_T, d_I, c_T, c, beta]

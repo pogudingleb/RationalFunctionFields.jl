@@ -1,0 +1,1 @@
+[s_d, s, phi_e, phi, nu, mu_i, mu_d, mu_0, gamma_d, gamma, beta_d, beta, N]
