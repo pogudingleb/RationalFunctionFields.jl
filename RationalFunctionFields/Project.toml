@@ -1,7 +1,7 @@
 name = "RationalFunctionFields"
 uuid = "73480bc8-48a2-41cc-880f-208b490ccf65"
 authors = ["Alexander Demin", "Gleb Pogudin"]
-version = "0.2.3"
+version = "0.3.0"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
