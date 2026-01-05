@@ -1,0 +1,1 @@
+[r2, r1, beta21, beta11, beta12//beta22]

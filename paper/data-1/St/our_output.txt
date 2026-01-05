@@ -1,0 +1,1 @@
+[T, Dd, T*a + T*d + T*dr + e + g - r - rR, (d*rR - dr*r)//(d - dr), (a*r - a*rR + d*e + d*g - dr*e - dr*g)//(d - dr), (a^2 + 2*a*d + d^2 + dr^2)//(a*dr + d*dr), (a*dr*r - a*dr*rR + d^2*g + d*dr*e - d*dr*g - dr^2*e)//(a*d - a*dr + d^2 - dr^2)]
