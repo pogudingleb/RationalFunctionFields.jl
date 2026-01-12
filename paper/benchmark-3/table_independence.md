@@ -9,7 +9,7 @@
 |            Covid1 |            true |
 |            Covid3 |            true |
 |           Crauste |            true |
-|            EAIHRD |         nothing |
+|            EAIHRD |            true |
 |            Fujita |            true |
 |           Goodwin |            true |
 |              HDNL |            true |
@@ -27,13 +27,13 @@
 |            KD1999 |            true |
 |               LLW |            true |
 |                LV |            true |
-|          Lincomp1 |         nothing |
-|          Lincomp2 |         nothing |
+|          Lincomp1 |            true |
+|          Lincomp2 |            true |
 |         Lipolysis |            true |
 |        MAPK\_5out |            true |
 |        MAPK\_6out |            true |
-| Ovarian\_follicle |         nothing |
-|             Pharm |         nothing |
+| Ovarian\_follicle |            true |
+|             Pharm |            true |
 |        Pivastatin |            true |
 |                QY |            true |
 |           SEAIJRC |            true |

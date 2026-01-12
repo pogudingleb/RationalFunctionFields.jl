@@ -1,3 +1,4 @@
+import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env"))
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 import Base.Iterators
 using PrettyTables
@@ -432,6 +433,8 @@ function make_nice_latex_table(filename, columns, results)
             println(io, "Original generating set information: $vars variables; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n")
             if input_funcs !== nothing
             println(io, "Original generating set: \n\n\$$(input_funcs)\$\n")
+            else
+            println(io, "Original generating set: too large to be listed.\n")
             end
             println(io, "Result of our algorithm: \n\n\$$(julia_funcs)\$\n")
             println(io, "Result is algebraically independent over \$\\mathbb{C}\$: $(independent in ["true", nothing] ? "yes" : "no").")
