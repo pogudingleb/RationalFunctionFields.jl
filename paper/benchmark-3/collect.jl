@@ -316,7 +316,7 @@ function paginate(words; chars_per_page = 40, sep = ",")
     pages
 end
 
-function nicify(result, f)
+function nicify(result, f; do_paginate=true)
     f = string(f)
     f = strip(f)
     f = chopprefix(f, "[")
@@ -329,14 +329,20 @@ function nicify(result, f)
     f = sort(f, by=c -> (length(c), c))
     f = map(ff -> replace(ff, r"reaction\_([0-9])\_k([0-9])" => s"r_\1_\2"), f)
     f = map(strip, f)
-    f = paginate(f, chars_per_page = 80, sep = ", ")
+    if do_paginate
+        f = paginate(f, chars_per_page = 80, sep = ", ")
+    end
     f = map(strip, f)
     f = filter(!isempty, f)
     f = map(x -> strip(x, ','), f)
     println("before latexify: ", f)
     f = map(x -> join(String.(latexify.(split(x, ", "), mult_symbol="")), ", "), f)
     println("after String(latex()): ", f)
-    f = join(f, ",\\\\")
+    if do_paginate
+        f = join(f, ",\\\\")
+    else
+        f = join(f, ", ")
+    end
     f = replace(f, r"\\frac" => "\\dfrac")
     f = replace(f, r"Mar" => "M")
     f = replace(f, r"Ninv" => "N_{\\operatorname{inv}}")
@@ -402,6 +408,12 @@ function make_nice_latex_table(filename, columns, results)
         f = string(f)
         f = replace(f, "_" => "\\_")
         result[:name] = f
+
+        f = result[:vars]
+        if !isnothing(f)
+            f = nicify(result, f; do_paginate=false)
+            result[:vars] = f
+        end
     end
 
     results = filter(result -> !(result[:name] in ["QY", "St"]), results)
@@ -425,12 +437,12 @@ function make_nice_latex_table(filename, columns, results)
             independent = get(result, :independent, nothing)
             elems = get(result, :elems, nothing)
             vars = get(result, :vars, nothing)
-            vars = isnothing(vars) ? 0 : length(split(vars, ","))
             bytes = get(result, :bytes, nothing)
             if isnothing(bytes) bytes = "0" end
             max_deg = get(result, :max_deg, nothing)
             println(io, "\\item \\myexample{$(name)} \\cite{}.\n")
-            println(io, "Original generating set information: $vars variables; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n")
+            println(io, "Original generating set information: $(length(split(vars, ","))) indeterminates; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n")
+            println(io, "Indeterminates: $vars.\n")
             if input_funcs !== nothing
             println(io, "Original generating set: \n\n\$$(input_funcs)\$\n")
             else
@@ -497,6 +509,10 @@ function main()
     columns = [:name, :original_funcs]
     results11 = foo_julia_original_generators(columns)
     print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
+
+    rat = filter(res -> res[:original_funcs] == nothing || occursin("/", res[:original_funcs]), results11);
+    poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))
+    @error "" length(poly_to_rat)
     
     columns = [:name, :julia_time, :maple_time]
     table2 = foo_julia_and_maple("table_time_julia_and_maple_fan.md", columns)
@@ -520,5 +536,6 @@ function main()
     table11 = make_nice_latex_table("table.tex", columns, results)
 
 end
+
 
 main()
