@@ -1,0 +1,2 @@
+[(beta12*r1*r2 - beta22*r1^2)//beta12, (-beta11^2*beta22 + beta11*beta12*beta21)//beta12, (-beta12*r2 + 2*beta22*r1)//beta12, (-beta12 - beta22)//beta12, (beta11*beta12*r2 - 2*beta11*beta22*r1 + beta12*beta21*r1)//beta12, (-beta11*beta12 + 2*beta11*beta22 - beta12*beta21)//beta12]
+
