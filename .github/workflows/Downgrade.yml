@@ -32,5 +32,6 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         with:
           ALLOW_RERESOLVE: false
+          project: 'RationalFunctionFields'
         env:
           GROUP: ${{ matrix.group }}
