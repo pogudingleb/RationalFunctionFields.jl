@@ -28,6 +28,7 @@ jobs:
 #        if: ${{ matrix.version == '1.6' }}
         with:
           skip: Pkg,TOML
+          projects: RationalFunctionFields
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
