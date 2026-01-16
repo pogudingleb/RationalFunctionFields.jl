@@ -41,7 +41,7 @@
     # for some generators of F
     for a in [3, 5, 6, 7, 10, 11, 12, 14, 20, 22, 23, 24]
         a = F(a)
-        for d in 0:(2^10):(2^16 - 1)
+        for d in 0:(2 ^ 10):(2 ^ 16 - 1)
             y = a^d
             x = ParamPunPam.pohlig_hellman_discrete_log(a, y, ord, buf)
             @test x == d
@@ -56,7 +56,7 @@
     # for some generators of F
     for a in [274810138, 2082094268, 1727712020, 1894941899]
         a = F(a)
-        for d in rand(0:(3 * 2^30 - 1), 100)
+        for d in rand(0:(3 * 2 ^ 30 - 1), 100)
             y = a^d
             x = ParamPunPam.pohlig_hellman_discrete_log(a, y, ord, buf)
             @test x == d
@@ -71,7 +71,7 @@
     # for some generators of F
     for a in [2498537638257874653, 1591250119780590526]
         a = F(a)
-        for d in rand(0:(2^62 + 134), 100)
+        for d in rand(0:(2 ^ 62 + 134), 100)
             y = a^d
             x = ParamPunPam.pohlig_hellman_discrete_log(a, y, ord, buf)
             @test x == d

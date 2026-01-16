@@ -29,9 +29,7 @@ end
 K = GF(2^62 + 135)
 R, x = polynomial_ring(GF(2^62 + 135), ["x$i" for i in 1:15])
 
-case =
-    (2x[1] + 3x[2]^2 + 4sum(x) + 1) //
-    (5x[1]^3 + 6x[2]^3 + 7sum(x) - 8(sum(x[1:10]) + 3) + 11)
+case = (2x[1] + 3x[2]^2 + 4sum(x) + 1) // (5x[1]^3 + 6x[2]^3 + 7sum(x) - 8(sum(x[1:10]) + 3) + 11)
 rational_interpolator = ParamPunPam.CuytLee
 
 for _ in 1:30

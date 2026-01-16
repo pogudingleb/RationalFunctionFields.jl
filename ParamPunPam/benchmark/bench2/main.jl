@@ -12,7 +12,7 @@ using DataStructures
 
 include("gizmos.jl")
 
-function problems_simplification_identifiable_funcs(;with_states=true)
+function problems_simplification_identifiable_funcs(; with_states=true)
     # get `benchmarks`
     include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmarking", "benchmarks.jl"))
     global benchmarks
@@ -97,30 +97,21 @@ function compute_max_total_degrees(funcs)
             D = max(D, j[2])
         end
     end
-    return Dict{Any,Any}(
-        :max_deg => (N, D)
-    )
+    return Dict{Any, Any}(:max_deg => (N, D))
 end
 
 function try_to_compute_full_gb(funcs)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
     t = @elapsed gb = paramgb(rff.mqs)
     n_spec, n_reduce = rff.mqs.stats.n_spec_mod_p, rff.mqs.stats.n_red_mod_p
-    return Dict(
-        :n_spec_full=>n_spec,
-        :n_red_full=>n_reduce,
-        :terms_full=>max_terms_of_coeffs(gb),
-        :time_full=>t
-    )
+    return Dict(:n_spec_full=>n_spec, :n_red_full=>n_reduce, :terms_full=>max_terms_of_coeffs(gb), :time_full=>t)
 end
 
 function compute_sharp_n_spec(funcs; deg=nothing)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
     t = @elapsed gb = paramgb(rff.mqs, up_to_degree=deg)
     n_spec, n_reduce = rff.mqs.stats.n_spec_mod_p, rff.mqs.stats.n_red_mod_p
-    return Dict(
-        :n_spec_sharp=>n_spec
-    )
+    return Dict(:n_spec_sharp=>n_spec)
 end
 
 function compute_time_per_eval(funcs)
@@ -136,10 +127,7 @@ function compute_time_per_eval(funcs)
     trace, _ = Groebner.groebner_learn(eqs, ordering=DegRevLex())
     b2 = @b Groebner.groebner_apply!($trace, $eqs, ordering=Groebner.DegRevLex())
     display(b2)
-    return Dict{Any,Any}(
-        :time_per_gb => b1.time,
-        :time_per_apply => b2.time
-    )
+    return Dict{Any, Any}(:time_per_gb => b1.time, :time_per_apply => b2.time)
 end
 
 function basic_stats(funcs)
@@ -151,12 +139,9 @@ function basic_stats(funcs)
             N = max(N, total_degree(f))
         end
     end
-    return Dict{Any,Any}(
-        :input_n => n,
-        :input_deg => (N, D)
-    )
+    return Dict{Any, Any}(:input_n => n, :input_deg => (N, D))
 end
- 
+
 function push_to_table!(table, res)
     for k in keys(table)
         if k in keys(res)
@@ -170,10 +155,27 @@ end
 problems = vcat(
     # problems_simplification_power_sums(),
     problems_simplification_identifiable_funcs(with_states=true),
-    problems_simplification_identifiable_funcs(with_states=false),
+    problems_simplification_identifiable_funcs(with_states=false)
 )
 
-table = OrderedDict(:name => [], :input_n => [], :input_deg => [], :n_spec => [], :n_red => [], :our_deg => [], :max_deg => [], :terms => [], :time => [], :time_per_gb => [], :time_per_apply => [], :terms_full => [], :n_spec_full => [], :n_red_full => [], :time_full => [], :n_spec_sharp => [])
+table = OrderedDict(
+    :name => [],
+    :input_n => [],
+    :input_deg => [],
+    :n_spec => [],
+    :n_red => [],
+    :our_deg => [],
+    :max_deg => [],
+    :terms => [],
+    :time => [],
+    :time_per_gb => [],
+    :time_per_apply => [],
+    :terms_full => [],
+    :n_spec_full => [],
+    :n_red_full => [],
+    :time_full => [],
+    :n_spec_sharp => []
+)
 
 for problem in problems
     name = problem[:name]
@@ -186,7 +188,7 @@ for problem in problems
     res3 = compute_time_per_eval(funcs)
     # res4 = try_to_compute_full_gb(funcs)
     res4 = Dict()
-    res5 = compute_sharp_n_spec(funcs, deg = max.(1, res1[:our_deg]))
+    res5 = compute_sharp_n_spec(funcs, deg=max.(1, res1[:our_deg]))
     res = merge(res0, res1, res2, res3, res4, res5)
     res[:name] = name
     push_to_table!(table, res)

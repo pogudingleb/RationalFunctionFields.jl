@@ -4,8 +4,7 @@ using Groebner, Nemo
 # Chou-302
 
 P, (u1, u2, u3, u4, u5) = polynomial_ring(Nemo.QQ, [:u1, :u2, :u3, :u4, :u5])
-R, (x1, x2, x3, x4, x5, x6, x7, x8) =
-    polynomial_ring(fraction_field(P), [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8])
+R, (x1, x2, x3, x4, x5, x6, x7, x8) = polynomial_ring(fraction_field(P), [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8])
 
 system = [
     -x5 * u3 + x6 * u2,
@@ -25,11 +24,8 @@ system = [
 # Simson-3
 
 P, (u1, u2, u3, u4) = polynomial_ring(Nemo.QQ, [:u1, :u2, :u3, :u4])
-R, (x1, x2, x3, x4, x5, x6, x7, x8, x9) = polynomial_ring(
-    fraction_field(P),
-    [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9],
-    internal_ordering=:degrevlex
-)
+R, (x1, x2, x3, x4, x5, x6, x7, x8, x9) =
+    polynomial_ring(fraction_field(P), [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9], internal_ordering=:degrevlex)
 
 system = [
     x1 * x8 - x2 * x8 - x1 * u2 + x2 * u1 - x9 * u1 + x9 * u2,
@@ -49,8 +45,8 @@ system = [
 ###
 # Param-1 (katsura)
 
-P, (a,b) = polynomial_ring(QQ, ["a","b"])
-R, (x0,x1,x2,x3,x4) = polynomial_ring(fraction_field(P), [:x0,:x1,:x2,:x3,:x4], internal_ordering=:degrevlex)
+P, (a, b) = polynomial_ring(QQ, ["a", "b"])
+R, (x0, x1, x2, x3, x4) = polynomial_ring(fraction_field(P), [:x0, :x1, :x2, :x3, :x4], internal_ordering=:degrevlex)
 system = [
     x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 + 2*x4^2 - x0 - b,
     2*x0*x1 + 2*x1*x2 + 2*x2*x3 + 2*x3*x4 - x1,

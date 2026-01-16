@@ -74,7 +74,7 @@ evalfrac(f, x) = evaluate(numerator(f), x) // evaluate(denominator(f), x)
 
             # Check that iterative interpolation works
             for _ in 1:20
-                subs = map(K, rand(1:(2^20), n))
+                subs = map(K, rand(1:(2 ^ 20), n))
                 new_x = gens(R) .* subs
                 new_case = evaluate(case, new_x)
 

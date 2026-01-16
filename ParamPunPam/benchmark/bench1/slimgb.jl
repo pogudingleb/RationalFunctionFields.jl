@@ -4,8 +4,11 @@ using Singular
 # Chou-302
 
 P, (u1, u2, u3, u4, u5) = polynomial_ring(QQ, [:u1, :u2, :u3, :u4, :u5])
-R, (x1, x2, x3, x4, x5, x6, x7, x8) =
-    polynomial_ring(Singular.AbstractAlgebra.fraction_field(P), [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8], ordering=:degrevlex)
+R, (x1, x2, x3, x4, x5, x6, x7, x8) = polynomial_ring(
+    Singular.AbstractAlgebra.fraction_field(P),
+    [:x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8],
+    ordering=:degrevlex
+)
 
 system = [
     -x5 * (u3//1) + x6 * (u2//1),
@@ -49,8 +52,9 @@ system = [
 ###
 # Param-1 (katsura)
 
-P, (a,b) = polynomial_ring(QQ, [:a,:b])
-R, (x0,x1,x2,x3,x4) = polynomial_ring(Singular.AbstractAlgebra.fraction_field(P), [:x0,:x1,:x2,:x3,:x4], ordering=:degrevlex)
+P, (a, b) = polynomial_ring(QQ, [:a, :b])
+R, (x0, x1, x2, x3, x4) =
+    polynomial_ring(Singular.AbstractAlgebra.fraction_field(P), [:x0, :x1, :x2, :x3, :x4], ordering=:degrevlex)
 system = [
     x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 + 2*x4^2 - x0 - b//1,
     2*x0*x1 + 2*x1*x2 + 2*x2*x3 + 2*x3*x4 - x1,
@@ -77,4 +81,3 @@ system = [
 # Timeout (>1 minute)
 
 nothing
-

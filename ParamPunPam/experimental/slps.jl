@@ -43,7 +43,7 @@ function poly_to_slp_1(f)
                 push!(slp, (arg1=var, arg2=var^(i - 1), op=(*), res=var^i))
             end
         end
-        monom_expr = subexprs[var^d]
+        monom_expr = subexprs[var ^ d]
         _, term_expr = maybe_add_symbol(subexprs, c * var^d, "internal")
         push!(slp, (arg1=c, arg2=var^d, op=(*), res=c * var^d))
         if i == 1

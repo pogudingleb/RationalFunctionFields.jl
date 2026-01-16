@@ -135,7 +135,7 @@ end
             for _ in 1:5
                 a, b = rand(1:3), rand(1:3)
                 n, d = a * n + a, b * d + b
-                subs = ground(rand(1:(2^20)))
+                subs = ground(rand(1:(2 ^ 20)))
                 new_x = gen(R) * subs
                 new_case = evaluate(case, new_x)
                 c = ParamPunPam.CauchyInterpolator(R, n, d)
