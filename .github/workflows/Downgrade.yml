@@ -2,12 +2,12 @@ name: Downgrade
 on:
   pull_request:
     branches:
-      - master
+      - main
     paths-ignore:
       - 'docs/**'
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - 'docs/**'
 jobs:
@@ -28,9 +28,11 @@ jobs:
 #        if: ${{ matrix.version == '1.6' }}
         with:
           skip: Pkg,TOML
+          projects: RationalFunctionFields
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
           ALLOW_RERESOLVE: false
+          project: 'RationalFunctionFields'
         env:
           GROUP: ${{ matrix.group }}
