@@ -128,20 +128,15 @@ function paramgb_only_degrees(blackbox::T; kwargs...) where {T <: AbstractBlackb
     ordering = get(kwargs, :ordering, Groebner.InputOrdering())
     up_to_degree_ = map(d -> isinf(d) ? div(typemax(Int), 2) : d, up_to_degree)
     ord = AbstractAlgebra.internal_ordering(parent(blackbox))
-    _paramgb_only_degrees(
-        blackbox,
-        ordering,
-        up_to_degree_,
-    )
+    _paramgb_only_degrees(blackbox, ordering, up_to_degree_)
 end
-
 
 function _paramgb_only_degrees(blackbox, ordering, up_to_degree)
     modular = ModularTracker(blackbox)
     state = GroebnerState(blackbox, ordering)
     discover_shape!(state, modular)
     discover_total_degrees!(state, modular, up_to_degree)
-    state.param_degrees 
+    state.param_degrees
 end
 
 function _paramgb(
@@ -392,10 +387,9 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
     Nds, Dds = repeat([Nd], n), repeat([Dd], n)
 
     if !is_interpolation_feasible(max(Nd, Dd), K, n)
-        @warn "In the prime number interpolation approach the field order might be too small" Nd Dd n max(Nd, Dd) *
-                                                                                                      log(_first_primes[n]) log(
-            BigInt(order(K))
-        )
+        @warn "In the prime number interpolation approach the field order might be too small" Nd Dd n max(Nd, Dd) * log(
+            _first_primes[n]
+        ) log(BigInt(order(K)))
     end
 
     # The current number of terms

@@ -23,10 +23,8 @@ system = [
 ###
 # Simson-3
 
-R, (u1, u2, u3, u4, x1, x2, x3, x4, x5, x6, x7, x8, x9) = polynomial_ring(
-    QQ,
-    [:u1, :u2, :u3, :u4, :x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9],
-)
+R, (u1, u2, u3, u4, x1, x2, x3, x4, x5, x6, x7, x8, x9) =
+    polynomial_ring(QQ, [:u1, :u2, :u3, :u4, :x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9])
 
 system = [
     x1 * x8 - x2 * x8 - x1 * u2 + x2 * u1 - x9 * u1 + x9 * u2,
@@ -46,7 +44,7 @@ system = [
 ###
 # Param-1 (katsura)
 
-R, (a,b,x0,x1,x2,x3,x4) = polynomial_ring(QQ, [:a,:b,:x0,:x1,:x2,:x3,:x4], internal_ordering=:degrevlex)
+R, (a, b, x0, x1, x2, x3, x4) = polynomial_ring(QQ, [:a, :b, :x0, :x1, :x2, :x3, :x4], internal_ordering=:degrevlex)
 system = [
     x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 + 2*x4^2 - x0 - b,
     2*x0*x1 + 2*x1*x2 + 2*x2*x3 + 2*x3*x4 - x1,
@@ -55,7 +53,7 @@ system = [
     b*x0 + 2*x1 + 2*x2 + 2*x3 + 2*x4 - a
 ]
 
-@time gb = groebner(system, ordering=DegRevLex(x0,x1,x2,x3,x4)*DegRevLex(a,b));
+@time gb = groebner(system, ordering=DegRevLex(x0, x1, x2, x3, x4)*DegRevLex(a, b));
 #   2.604742 seconds (4.26 M allocations: 522.964 MiB, 4.05% gc time)
 
 ###
@@ -69,7 +67,7 @@ system = [
     x0 + 2*x1 + 2*x2 + 2*x3 + 2*x4 - a^3
 ]
 
-@time gb = groebner(system, ordering=DegRevLex(x0,x1,x2,x3,x4)*DegRevLex(a,b));
+@time gb = groebner(system, ordering=DegRevLex(x0, x1, x2, x3, x4)*DegRevLex(a, b));
 #  9.152303 seconds (9.28 M allocations: 1.570 GiB, 3.07% gc time)
 
 nothing

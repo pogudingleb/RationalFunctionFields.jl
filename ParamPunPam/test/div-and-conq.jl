@@ -1,6 +1,6 @@
 FIELDS = [Nemo.Native.GF(2^62 + 135), Nemo.Native.GF(2^31 - 1)]
 
-t1,t2 = 0, 0
+t1, t2 = 0, 0
 
 @testset "Univariate interpolate" begin
     for ground in FIELDS
