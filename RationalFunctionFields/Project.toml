@@ -1,7 +1,7 @@
 name = "RationalFunctionFields"
 uuid = "73480bc8-48a2-41cc-880f-208b490ccf65"
-authors = ["Alexander Demin", "Gleb Pogudin"]
 version = "0.3.0"
+authors = ["Alexander Demin", "Gleb Pogudin"]
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -14,7 +14,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
-AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46, 0.47"
+AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48"
 Combinatorics = "1"
 Groebner = "0.10"
 LinearAlgebra = "1.10, 1.11"
