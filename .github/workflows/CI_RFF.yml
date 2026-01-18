@@ -1,4 +1,4 @@
-name: CI
+name: CI RationalFunctionFields
 on:
   push:
     branches:

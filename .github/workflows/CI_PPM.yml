@@ -1,4 +1,4 @@
-name: Runtests
+name: CI ParamPunPam
 on: [push, pull_request]
 jobs:
   test:
@@ -17,3 +17,4 @@ jobs:
       - uses: julia-actions/julia-runtest@latest
         with:
           depwarn: error
+          project: 'ParamPunPam'
