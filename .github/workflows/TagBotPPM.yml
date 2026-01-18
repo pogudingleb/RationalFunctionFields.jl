@@ -1,4 +1,4 @@
-name: TagBot
+name: TagBot ParamPunPam
 on:
   issue_comment:
     types:
@@ -29,4 +29,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ssh: ${{ secrets.DOCUMENTER_KEY }}
-          subdir: RationalFunctionFields
+          subdir: ParamPunPam
