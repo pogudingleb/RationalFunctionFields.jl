@@ -1,4 +1,4 @@
-name: Runtests
+name: CI ParamPunPam
 on: [push, pull_request]
 jobs:
   test:
