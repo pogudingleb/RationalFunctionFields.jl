@@ -1,4 +1,4 @@
-name: Downgrade
+name: Downgrade RationalFunctionFields
 on:
   pull_request:
     branches:
