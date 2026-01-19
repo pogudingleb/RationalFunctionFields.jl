@@ -5,13 +5,13 @@ on:
       - main
     paths-ignore:
       - 'RationalFunctionFields/docs/**'
-      - 'ParamPunPam'
+      - 'ParamPunPam/**'
   push:
     branches:
       - main
     paths-ignore:
       - 'RationalFunctionFields/docs/**'
-      - 'ParamPunPam'
+      - 'ParamPunPam/**'
 jobs:
   test:
     runs-on: ubuntu-latest

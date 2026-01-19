@@ -1,11 +1,17 @@
 name: CI RationalFunctionFields
 on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'RationalFunctionFields/docs/**'
+      - 'ParamPunPam/**'
   push:
     branches:
       - main
-    tags: ['*']
-  pull_request:
-  workflow_dispatch:
+    paths-ignore:
+      - 'RationalFunctionFields/docs/**'
+      - 'ParamPunPam/**'
 concurrency:
   # Skip intermediate builds: always.
   # Cancel intermediate builds: only if it is a pull request build.
