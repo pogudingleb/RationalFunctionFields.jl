@@ -62,7 +62,7 @@ end
 # O(M(n)logn), if n = degree(f) = O(length(xs))
 function remindertree(f, ptree)
     K = base_ring(parent(f))
-    rtree = zeros(K, treebase(ptree))
+    rtree = [zero(K) for _ in 1:treebase(ptree)]
     _remindertree!(f, rtree, ptree, treedepth(ptree) - 1, 1)
 end
 
@@ -129,7 +129,7 @@ function fastpolyinterpolate(R, xs, ys)
     dm = derivative(m)
     # O(M(n)logn)
     si = remindertree(dm, ptree)
-    ysi = zeros(base_ring(R), nextpow(2, length(ys)))
+    ysi = [zero(base_ring(R)) for _ in 1:nextpow(2, length(ys))]
     for i in 1:length(ys)
         ysi[i] = ys[i] * inv(si[i])
     end

@@ -139,7 +139,7 @@ function get_evaluation_points!(vdhl::VanDerHoevenLecerf)
         end
         # The cycle below is (D + 2)*4n*log(q)
         for j in 1:(totaldeg)
-            !isassigned(ωξij, j) && (ωξij[j] = zeros(K, length(ω) - 1))
+            !isassigned(ωξij, j) && (ωξij[j] = [zero(K) for _ in 1:(length(ω) - 1)])
             for nj in 2:length(ω)
                 ωξij[j][nj - 1] = ωi[nj]
             end

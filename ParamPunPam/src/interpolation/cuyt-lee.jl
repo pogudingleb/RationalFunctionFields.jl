@@ -128,7 +128,7 @@ function get_evaluation_points!(cl::CuytLee)
             ξij[1] = random_point(K)
         end
         for j in 1:totaldeg
-            !isassigned(ωξij, j) && (ωξij[j] = zeros(K, length(ω)))
+            !isassigned(ωξij, j) && (ωξij[j] = [zero(K) for _ in 1:length(ω)])
             for nj in 1:length(ω)
                 ωξij[j][nj] = ωi[nj]
             end
@@ -172,8 +172,8 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
 
     P_interpolated = Vector{elem_type(R)}(undef, Nd + 1)
     Q_interpolated = Vector{elem_type(R)}(undef, Dd + 1)
-    P_higher_degrees_contribution = [zeros(K, Nd + 1) for _ in 0:(2T - 1)]
-    Q_higher_degrees_contribution = [zeros(K, Dd + 1) for _ in 0:(2T - 1)]
+    P_higher_degrees_contribution = [[zero(K) for _ in 1:(Nd + 1)] for _ in 0:(2T - 1)]
+    Q_higher_degrees_contribution = [[zero(K) for _ in 1:(Dd + 1)] for _ in 0:(2T - 1)]
 
     @inbounds for i in 0:(2T - 1)
         fij = evaluations[((i) * totaldeg + 1):((i + 1) * totaldeg)]
