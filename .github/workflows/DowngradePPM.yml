@@ -4,13 +4,13 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'RationalFunctionFields'
+      - 'RationalFunctionFields/**'
       - 'ParamPunPam/docs/**'
   push:
     branches:
       - main
     paths-ignore:
-      - 'RationalFunctionFields'
+      - 'RationalFunctionFields/**'
       - 'ParamPunPam/docs/**'
 jobs:
   test:
