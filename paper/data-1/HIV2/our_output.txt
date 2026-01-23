@@ -1,0 +1,1 @@
+[s, d, b, c + k1 + w1 + w2, k2*q2, c*k1 + c*w1 + c*w2 + k1*w2 + w1*w2, c*k1*w2 + c*w1*w2, k1*k2*q1 + k1*k2*q2 + k2*q2*w1]

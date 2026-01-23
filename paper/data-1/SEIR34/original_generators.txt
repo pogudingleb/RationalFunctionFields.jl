@@ -1,0 +1,2 @@
+[(beta*epsilon*gamma*r + beta*epsilon*mu*r + beta*gamma*mu*r + beta*mu^2*r)//(K*N), (-beta*epsilon*r)//N, (beta*epsilon*r + beta*gamma*r + 2*beta*mu*r)//(K*N), epsilon*gamma*mu + epsilon*mu^2 + gamma*mu^2 + mu^3, epsilon*mu + gamma*mu + 2*mu^2, -epsilon - gamma - 2*mu, -1, (beta*r)//(K*N), epsilon + gamma + 3*mu, -N]
+

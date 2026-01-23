@@ -1,0 +1,1 @@
+[a + g + nu, b//g, d*g + nu, a*nu + g*nu]

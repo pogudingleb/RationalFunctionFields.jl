@@ -1,0 +1,1 @@
+[gamma, beta//psi, gamma*psi - psi*v, psi*v - psi - v]

@@ -1,0 +1,1 @@
+[mu, N, epsilon + gamma, epsilon*gamma, K*epsilon, beta*epsilon*r]
