@@ -102,12 +102,12 @@ is not specified but is assumed to be close to 1.
 )
     time_start = time_ns()
     gb_time = 0
-    mqs = rff.mqs
+    oms = rff.oms
     finite_field = Nemo.Native.GF(2^30 + 3)
-    ParamPunPam.reduce_mod_p!(mqs, finite_field)
+    ParamPunPam.reduce_mod_p!(oms, finite_field)
 
-    ring_ff = parent(first(mqs.cached_nums_gf[finite_field]))
-    xs_ff = contract_point(gens(ring_ff), mqs)
+    ring_ff = parent(first(oms.cached_nums_gf[finite_field]))
+    xs_ff = contract_point(gens(ring_ff), oms)
 
     all_monomials = empty(xs_ff)
     for deg = 1:up_to_degree
@@ -135,8 +135,8 @@ is not specified but is assumed to be close to 1.
             gbs = empty([empty(xs_ff)])
             for _ = 1:batch_size
                 point = ParamPunPam.distinct_nonzero_points(finite_field, length(xs_ff))
-                point_ext = extend_point(point, mqs)
-                gens_spec = specialize_mod_p(mqs, point)
+                point_ext = extend_point(point, oms)
+                gens_spec = specialize_mod_p(oms, point)
                 gb_time += @elapsed gb_spec = Groebner.groebner(gens_spec)
                 npoints += 1
                 push!(gbs, gb_spec)
@@ -166,14 +166,14 @@ is not specified but is assumed to be close to 1.
     end
 
     @debug "Reconstructing relations to rationals"
-    ring_param = ParamPunPam.parent_params(mqs)
-    to_param = extend_point(gens(ring_param), mqs)
+    ring_param = ParamPunPam.parent_params(oms)
+    to_param = extend_point(gens(ring_param), oms)
     relations_qq =
         Vector{Generic.FracFieldElem{elem_type(ring_param)}}(undef, length(relations))
     for i = 1:length(relations)
         relation_ff = relations[i]
         success, relation_qq =
-            ParamPunPam.rational_reconstruct_polynomial(parent(mqs), relation_ff)
+            ParamPunPam.rational_reconstruct_polynomial(parent(oms), relation_ff)
         if !success
             @warn """
             Failed to reconstruct the $i-th relation. Error will follow.
