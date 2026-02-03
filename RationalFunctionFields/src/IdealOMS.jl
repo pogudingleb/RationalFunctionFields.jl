@@ -7,7 +7,7 @@ mutable struct BlackboxStats
 end
 
 """
-    IdealMQS
+    IdealOMS
 
 Relations between the elements of a rational functions subfield of Q(x) encoded
 with an ideal in Q(x)[y]:
@@ -16,7 +16,7 @@ with an ideal in Q(x)[y]:
 
 ## Interface 
 
-`IdealMQS` provides all of the functions the interface `AbstractBlackboxIdeal`
+`IdealOMS` provides all of the functions the interface `AbstractBlackboxIdeal`
 requires. See `ParamPunPam.AbstractBlackboxIdeal` for details.
 
 ## Reference
@@ -24,7 +24,7 @@ requires. See `ParamPunPam.AbstractBlackboxIdeal` for details.
 Definition 2.16
 https://mediatum.ub.tum.de/doc/685465/685465.pdf
 """
-mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
+mutable struct IdealOMS{T} <: AbstractBlackboxIdeal
     funcs_den_nums::Vector{Vector{T}}
     dens_to_sat_orig::Vector{T}
     # Indices of pivot elements for each component of funcs_den_nums 
@@ -49,15 +49,15 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
     stats::BlackboxStats
 
     """
-        IdealMQS(funcs_den_nums::Vector{Vector})
+        IdealOMS(funcs_den_nums::Vector{Vector})
 
     Given an array of polynomials, that is generators of form
         
         [[f1, f2, f3, ...], [g1, g2, g3, ...], ...]
 
-    constructs an MQS ideal.
+    constructs an OMS ideal.
     """
-    function IdealMQS(
+    function IdealOMS(
         funcs_den_nums::Vector{Vector{PolyQQ}};
         sat_varname = "t",
         sat_var_position = :first,
@@ -73,7 +73,7 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
         @assert sat_factorization in (:none, :lazy, :full)
         ordering !== :degrevlex && (@warn "Ordering is not degrevlex but $ordering")
         ring = parent(first(first(funcs_den_nums)))
-        @debug "Constructing the MQS ideal in $ring"
+        @debug "Constructing the OMS ideal in $ring"
         K, n = base_ring(ring), nvars(ring)
         @debug "Finding pivot polynomials"
         # In the component f1,f2,... find the polynomial with the minimal total
@@ -144,7 +144,7 @@ mutable struct IdealMQS{T} <: AbstractBlackboxIdeal
             end
         end
         parent_ring_param, _ = polynomial_ring(ring, varnames, internal_ordering = ordering)
-        @debug "Constructed MQS ideal in $R_sat with $(length(nums_qq) + 1) elements"
+        @debug "Constructed OMS ideal in $R_sat with $(length(nums_qq) + 1) elements"
         @assert length(pivots_indices) == length(funcs_den_nums)
         @assert length(nums_qq) == length(dens_qq)
 
@@ -169,15 +169,15 @@ end
 
 # ------------------------------------------------------------------------------
 
-AbstractAlgebra.base_ring(ideal::IdealMQS) = base_ring(ideal.nums_qq[1])
-AbstractAlgebra.parent(ideal::IdealMQS) = ideal.parent_ring_param
-ParamPunPam.parent_params(ideal::IdealMQS) = base_ring(ideal.parent_ring_param)
-specialization_ring(ideal::IdealMQS) = parent(first(ideal.nums_qq))
+AbstractAlgebra.base_ring(ideal::IdealOMS) = base_ring(ideal.nums_qq[1])
+AbstractAlgebra.parent(ideal::IdealOMS) = ideal.parent_ring_param
+ParamPunPam.parent_params(ideal::IdealOMS) = base_ring(ideal.parent_ring_param)
+specialization_ring(ideal::IdealOMS) = parent(first(ideal.nums_qq))
 
 # ------------------------------------------------------------------------------
 
-function are_generators_zero(mqs::IdealMQS)
-    return all(x -> length(x) == 1, mqs.funcs_den_nums)
+function are_generators_zero(oms::IdealOMS)
+    return all(x -> length(x) == 1, oms.funcs_den_nums)
 end
 
 # ------------------------------------------------------------------------------
@@ -195,10 +195,10 @@ end
 
 # ------------------------------------------------------------------------------
 
-function fractionfree_generators_raw(mqs::IdealMQS)
-    ring_orig = ParamPunPam.parent_params(mqs)
+function fractionfree_generators_raw(oms::IdealOMS)
+    ring_orig = ParamPunPam.parent_params(oms)
     varnames_params = map(string, Nemo.symbols(ring_orig))
-    varnames_indets = map(string, Nemo.symbols(mqs.parent_ring_param))
+    varnames_indets = map(string, Nemo.symbols(oms.parent_ring_param))
     @info "Parameter names: $varnames_params"
     @info "Indeterm. names: $varnames_indets"
     @assert allunique(varnames_params) && allunique(varnames_indets)
@@ -210,12 +210,12 @@ function fractionfree_generators_raw(mqs::IdealMQS)
     )
     indets = big_vars[1:length(varnames_indets)]
     params = big_vars[(length(varnames_indets)+1):end]
-    nums_qq, dens_qq, const_polys = mqs.nums_qq, mqs.dens_qq, mqs.const_polys
+    nums_qq, dens_qq, const_polys = oms.nums_qq, oms.dens_qq, oms.const_polys
     nums_y = map(num -> parent_ring_change(num, big_ring, matching = :byname), nums_qq)
     dens_y = map(den -> parent_ring_change(den, big_ring, matching = :byname), dens_qq)
     const_polys_y =
         map(p -> parent_ring_change(p, big_ring, matching = :byname), const_polys)
-    subs = extend_point(params, mqs)
+    subs = extend_point(params, oms)
     nums_x = map(num -> evaluate(num, subs), nums_qq)
     dens_x = map(den -> evaluate(den, subs), dens_qq)
     polys = Vector{elem_type(big_ring)}(undef, length(nums_qq) + length(const_polys))
@@ -234,16 +234,16 @@ end
 
 # TODO: check that the reduction is lucky.
 function ParamPunPam.reduce_mod_p!(
-    mqs::IdealMQS,
+    oms::IdealOMS,
     ff::Field,
 ) where {Field<:Union{Nemo.fpField,Nemo.FpField}}
-    @debug "Reducing MQS ideal modulo $(ff)"
+    @debug "Reducing OMS ideal modulo $(ff)"
     # If there is a reduction modulo this field already,
-    if haskey(mqs.cached_nums_gf, ff)
+    if haskey(oms.cached_nums_gf, ff)
         @debug "Cache hit with $(ff)!"
         return nothing
     end
-    nums_qq, dens_qq, const_polys = mqs.nums_qq, mqs.dens_qq, mqs.const_polys
+    nums_qq, dens_qq, const_polys = oms.nums_qq, oms.dens_qq, oms.const_polys
     ring_qq = parent(first(nums_qq))
     ring_ff, _ = Nemo.polynomial_ring(
         ff,
@@ -254,19 +254,19 @@ function ParamPunPam.reduce_mod_p!(
     dens_gf = map(poly -> map_coefficients(c -> ff(c), poly, parent = ring_ff), dens_qq)
     const_polys_gf =
         map(poly -> map_coefficients(c -> ff(c), poly, parent = ring_ff), const_polys)
-    mqs.cached_nums_gf[ff] = nums_gf
-    mqs.cached_dens_gf[ff] = dens_gf
-    mqs.cached_const_polys_gf[ff] = const_polys_gf
-    mqs.stats.n_red_mod_p += 1
+    oms.cached_nums_gf[ff] = nums_gf
+    oms.cached_dens_gf[ff] = dens_gf
+    oms.cached_const_polys_gf[ff] = const_polys_gf
+    oms.stats.n_red_mod_p += 1
     return nothing
 end
 
 # ------------------------------------------------------------------------------
 
 """
-    Returns a vector of MQS-polynomial evaluated at point
+    Returns a vector of OMS-polynomial evaluated at point
 """
-function fractions_to_mqs_specialized(
+function fractions_to_oms_specialized(
     nums::Vector{T},
     dens::Vector{T},
     point::Vector{P},
@@ -287,53 +287,53 @@ end
 
 # ------------------------------------------------------------------------------
 
-function extend_point(point::Vector{T}, mqs::IdealMQS) where {T<:RingElem}
-    return insert_at_indices(point, mqs.sat_var_indices, one(first(point)))
+function extend_point(point::Vector{T}, oms::IdealOMS) where {T<:RingElem}
+    return insert_at_indices(point, oms.sat_var_indices, one(first(point)))
 end
 
-function contract_point(point::Vector{T}, mqs::IdealMQS) where {T<:RingElem}
-    return Vector{T}(point[[!(i in mqs.sat_var_indices) for i = 1:length(point)]])
+function contract_point(point::Vector{T}, oms::IdealOMS) where {T<:RingElem}
+    return Vector{T}(point[[!(i in oms.sat_var_indices) for i = 1:length(point)]])
 end
 
 # ------------------------------------------------------------------------------
 
 function ParamPunPam.specialize_mod_p(
-    mqs::IdealMQS,
+    oms::IdealOMS,
     point::Vector{T},
 ) where {T<:Union{fpFieldElem,FpFieldElem}}
     K_1 = parent(first(point))
-    #@debug "Evaluating MQS ideal over $K_1 at $point"
-    @assert haskey(mqs.cached_nums_gf, K_1)
+    #@debug "Evaluating OMS ideal over $K_1 at $point"
+    @assert haskey(oms.cached_nums_gf, K_1)
     nums_gf, dens_gf, const_polys_gf =
-        mqs.cached_nums_gf[K_1], mqs.cached_dens_gf[K_1], mqs.cached_const_polys_gf[K_1]
+        oms.cached_nums_gf[K_1], oms.cached_dens_gf[K_1], oms.cached_const_polys_gf[K_1]
     K_2 = base_ring(nums_gf[1])
     @assert K_1 == K_2
-    @assert length(point) == nvars(ParamPunPam.parent_params(mqs))
-    result = fractions_to_mqs_specialized(nums_gf, dens_gf, extend_point(point, mqs))
+    @assert length(point) == nvars(ParamPunPam.parent_params(oms))
+    result = fractions_to_oms_specialized(nums_gf, dens_gf, extend_point(point, oms))
     append!(result, const_polys_gf)
-    mqs.stats.n_spec_mod_p += 1
+    oms.stats.n_spec_mod_p += 1
     return result
 end
 
 # ------------------------------------------------------------------------------
 
-function specialize(mqs::IdealMQS, point::Vector{Nemo.QQFieldElem})
-    @debug "Evaluating MQS ideal over QQ at $point"
-    nums_qq, dens_qq = mqs.nums_qq, mqs.dens_qq
-    @assert length(point) == nvars(ParamPunPam.parent_params(mqs))
-    result = fractions_to_mqs_specialized(nums_qq, dens_qq, extend_point(point, mqs))
-    append!(result, mqs.const_polys)
+function specialize(oms::IdealOMS, point::Vector{Nemo.QQFieldElem})
+    @debug "Evaluating OMS ideal over QQ at $point"
+    nums_qq, dens_qq = oms.nums_qq, oms.dens_qq
+    @assert length(point) == nvars(ParamPunPam.parent_params(oms))
+    result = fractions_to_oms_specialized(nums_qq, dens_qq, extend_point(point, oms))
+    append!(result, oms.const_polys)
     return result
 end
 
 # ------------------------------------------------------------------------------
 
-function specialize_fracs_to_mqs(mqs::IdealMQS, fracs, point)
+function specialize_fracs_to_oms(oms::IdealOMS, fracs, point)
     ff = parent(first(point))
-    new_ring = parent(mqs.nums_qq[1])
+    new_ring = parent(oms.nums_qq[1])
     if characteristic(ff) > 0
-        @assert haskey(mqs.cached_nums_gf, ff)
-        new_ring = parent(first(mqs.cached_nums_gf[ff]))
+        @assert haskey(oms.cached_nums_gf, ff)
+        new_ring = parent(first(oms.cached_nums_gf[ff]))
     end
     num_den_pairs = map(
         pair -> map(
@@ -341,7 +341,7 @@ function specialize_fracs_to_mqs(mqs::IdealMQS, fracs, point)
                 p,
                 new_ring,
                 matching = :byindex,
-                shift = Int(1 in mqs.sat_var_indices) * length(mqs.sat_var_indices),
+                shift = Int(1 in oms.sat_var_indices) * length(oms.sat_var_indices),
             ),
             pair,
         ),
@@ -349,5 +349,5 @@ function specialize_fracs_to_mqs(mqs::IdealMQS, fracs, point)
     )
     nums = map(first, num_den_pairs)
     dens = map(last, num_den_pairs)
-    return fractions_to_mqs_specialized(nums, dens, extend_point(point, mqs))
+    return fractions_to_oms_specialized(nums, dens, extend_point(point, oms))
 end

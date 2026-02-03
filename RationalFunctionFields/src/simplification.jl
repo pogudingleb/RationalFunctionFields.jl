@@ -151,15 +151,15 @@ end
     up_to_degree = (typemax(Int), typemax(Int)),
     rational_interpolator = :VanDerHoevenLecerf,
 )
-    mqs = rff.mqs
-    if are_generators_zero(mqs)
+    oms = rff.oms
+    if are_generators_zero(oms)
         return rff
     end
     gb, fracs, new_rff = nothing, nothing, nothing
     # Check if the basis is in cache
-    if haskey(mqs.cached_groebner_bases, (ordering, up_to_degree))
+    if haskey(oms.cached_groebner_bases, (ordering, up_to_degree))
         @debug "Cache hit with ($ordering, $up_to_degree)!"
-        gb = mqs.cached_groebner_bases[ordering, up_to_degree]
+        gb = oms.cached_groebner_bases[ordering, up_to_degree]
         basis_coeffs = map(collect ∘ coefficients, gb)
         fracs = collect(mapreduce(Set, union!, basis_coeffs))
         return RationalFunctionField(fracs)
@@ -170,7 +170,7 @@ end
     while !two_sided_inclusion && all(current_degrees .<= up_to_degree)
         @debug "Computing GB with parameters up to degrees $(current_degrees)"
         runtime = @elapsed gb = ParamPunPam.paramgb(
-            mqs,
+            oms,
             up_to_degree = current_degrees,
             ordering = ordering,
             rational_interpolator = rational_interpolator,
@@ -201,8 +201,8 @@ end
         current_degrees = current_degrees .* (2, 2)
     end
     @debug "The coefficients of the Groebner basis are presented by $(length(fracs)) rational functions"
-    new_rff.mqs.cached_groebner_bases[ordering, up_to_degree] = gb
-    rff.mqs.cached_groebner_bases[ordering, up_to_degree] = gb
+    new_rff.oms.cached_groebner_bases[ordering, up_to_degree] = gb
+    rff.oms.cached_groebner_bases[ordering, up_to_degree] = gb
     return new_rff
 end
 
@@ -224,7 +224,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
     up_to_degree = (3, 3),
 ) where {T}
     time_start = time_ns()
-    vars = gens(parent(rff.mqs))
+    vars = gens(parent(rff.oms))
     nbases = length(vars)
     ordering_to_generators = Dict()
     if code == 0
@@ -242,7 +242,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
     # NOTE: maybe hide the computation of multiple bases inside
     # RationalFunctionField
     gb_rff = RationalFunctionField(cfs)
-    vars = gens(parent(gb_rff.mqs))
+    vars = gens(parent(gb_rff.oms))
     if length(vars) == 1
         return ordering_to_generators
     end
@@ -423,7 +423,7 @@ Out of $(length(new_fracs)) fractions $(length(new_fracs_unique)) are syntactica
         throw("The new subfield generators are not correct.")
     end
     @info "Inclusion checked with probability $prob_threshold in $(runtime) seconds"
-    @debug "Out of $(length(rff.mqs.nums_qq)) initial generators there are $(length(new_fracs)) independent"
+    @debug "Out of $(length(rff.oms.nums_qq)) initial generators there are $(length(new_fracs)) independent"
     ranking = generating_set_rank(new_fracs)
     #_runtime_logger[:id_ranking] = ranking
     @debug "The ranking of the new set of generators is $ranking"

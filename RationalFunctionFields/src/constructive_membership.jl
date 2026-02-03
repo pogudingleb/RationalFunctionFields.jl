@@ -1,12 +1,12 @@
 """
-    check_constructive_field_membership(tagged_mqs, tag_relations, tagged_num, tagged_den)
+    check_constructive_field_membership(tagged_oms, tag_relations, tagged_num, tagged_den)
 
-Reduces `tagged_num // tagged_den` modulo the given `tagged_mqs` ideal.
+Reduces `tagged_num // tagged_den` modulo the given `tagged_oms` ideal.
 Cancels out `tag_relations`.
 
 ## Input
 
-- `tagged_mqs`: vector of generators in K(T)[x].
+- `tagged_oms`: vector of generators in K(T)[x].
 - `tag_relations`: vector of relations in K[T].
 - `tagged_num`, `tagged_den`: numerator and denominator to be reduced, both
   elements of `K(T)[x]`.
@@ -16,30 +16,30 @@ Cancels out `tag_relations`.
 Return a tuple (`membership`, `remainder`).
 
 - `membership`: `true` if `tagged_num // tagged_den` belongs to the field
-    associated with `tagged_mqs`, `false` otherwise.
+    associated with `tagged_oms`, `false` otherwise.
 - `remainder`: expression of `tagged_num // tagged_den` in terms of `T`.
     NOTE: expression is canonical provided that `tag_relations` are specified.
 """
 function check_constructive_field_membership(
-    tagged_mqs,
+    tagged_oms,
     tag_relations,
     tagged_num,
     tagged_den,
 )
-    @assert !isempty(tagged_mqs)
+    @assert !isempty(tagged_oms)
     @assert !iszero(tagged_den)
-    ring_of_tags = base_ring(base_ring(parent(first(tagged_mqs))))
+    ring_of_tags = base_ring(base_ring(parent(first(tagged_oms))))
     if !isempty(tag_relations)
         @assert ring_of_tags == parent(first(tag_relations))
     end
-    # Compute the remainders modulo the MQS.
+    # Compute the remainders modulo the OMS.
     # These belong to K(T)[x].
     @debug """
     Reducing $tagged_num, $tagged_den"""
-    _, num_rem = divrem(tagged_num, tagged_mqs)
-    _, den_rem = divrem(tagged_den, tagged_mqs)
+    _, num_rem = divrem(tagged_num, tagged_oms)
+    _, den_rem = divrem(tagged_den, tagged_oms)
     @debug """
-    Normal forms modulo MQS: 
+    Normal forms modulo OMS: 
     Num: $(num_rem)
     Den: $(den_rem)"""
 
@@ -132,13 +132,13 @@ function check_constructive_field_membership(
     algebraicity = check_algebraicity(rff, to_be_reduced, 0.99)
     to_be_reduced = to_be_reduced[algebraicity]
     # A tag is assigned for each of the the generators of the given rational
-    # function field. Then, the MQS ideal is constructed in the following way:
+    # function field. Then, the OMS ideal is constructed in the following way:
     #   < N_i(x) - T_i * D_i(x), Q * t - 1 >  in  K(T)[x][t]
     # for each N_i / D_i in the generators.
     #
     # Let the fraction to be reduced be Num // Den, A is a formal parameter.
     # We construct Num - A * Den in K[x][A] to later compute the normal form
-    # of it with respect to the MQS ideal of generators in K(T)[vars][A]. 
+    # of it with respect to the OMS ideal of generators in K(T)[vars][A]. 
     #
     # Then, let A = norm_form(Num) // norm_form(Den). Note that A lives in
     # K(T)[x].
@@ -167,47 +167,47 @@ $sat_string
     sat_var = vars_tag[1]
     orig_vars = vars_tag[2:(nvars(x_ring)+1)]
     tag_vars = vars_tag[(nvars(x_ring)+2):end]
-    # Construct generators of the tagged MQS ideal.
-    tagged_mqs = Vector{elem_type(poly_ring_tag)}(undef, length(extended_gens) + 1)
+    # Construct generators of the tagged OMS ideal.
+    tagged_oms = Vector{elem_type(poly_ring_tag)}(undef, length(extended_gens) + 1)
     Q = one(poly_ring_tag)
     for i = 1:length(extended_gens)
         num, den = unpack_fraction(extended_gens[i])
         num_tag = parent_ring_change(num, poly_ring_tag)
         den_tag = parent_ring_change(den, poly_ring_tag)
         Q = lcm(Q, squarefree_part(den_tag))
-        tagged_poly_mqs = num_tag - tag_vars[i] * den_tag
-        tagged_mqs[i] = tagged_poly_mqs
+        tagged_poly_oms = num_tag - tag_vars[i] * den_tag
+        tagged_oms[i] = tagged_poly_oms
     end
-    tagged_mqs[end] = Q * sat_var - 1
-    # Compute the basis of the MQS in K[T][x][t] such that T < x < t.
+    tagged_oms[end] = Q * sat_var - 1
+    # Compute the basis of the OMS in K[T][x][t] such that T < x < t.
     #
     # NOTE: we compute the basis in K[T][x][t], not in K(T)[x][t].
     # This way, we obtain two pieces of information at once:
     # - the kernel of the map from T to x (the algebraic relations of the tags).
-    # - the GB of the MQS in K(T)[x][t].
+    # - the GB of the OMS in K(T)[x][t].
     # ord = Lex()
     ord = DegRevLex([sat_var]) * DegRevLex(orig_vars) * DegRevLex(tag_vars)
     @debug """
-    Tagged MQS ideal:
-    $tagged_mqs
+    Tagged OMS ideal:
+    $tagged_oms
     Monom ordering:
     $(ord)"""
-    tagged_mqs_gb = groebner(tagged_mqs, ordering = ord, homogenize = :no)
+    tagged_oms_gb = groebner(tagged_oms, ordering = ord, homogenize = :no)
     # Relations between tags in K[T]
     relations_between_tags = filter(
         poly -> isempty(intersect(vars(poly), vcat(sat_var, orig_vars))),
-        tagged_mqs_gb,
+        tagged_oms_gb,
     )
     # The basis in K[T][x]
-    tagged_mqs_gb = setdiff(tagged_mqs_gb, relations_between_tags)
-    tagged_mqs_gb = filter(poly -> isempty(intersect(vars(poly), [sat_var])), tagged_mqs_gb)
+    tagged_oms_gb = setdiff(tagged_oms_gb, relations_between_tags)
+    tagged_oms_gb = filter(poly -> isempty(intersect(vars(poly), [sat_var])), tagged_oms_gb)
     @debug """
-    Tagged MQS GB:
-    $tagged_mqs_gb
+    Tagged OMS GB:
+    $tagged_oms_gb
     Relations between tags:
     $relations_between_tags
     """
-    # Reduce the fractions with respect to the MQS ideal.
+    # Reduce the fractions with respect to the OMS ideal.
     #
     # NOTE: reduction actually happens in K(T)[x]. So we map polynomials to the
     # parametric ring K(T)[x].
@@ -233,9 +233,9 @@ $sat_string
     Parametric ring:
     $parametric_ring
     """
-    tagged_mqs_gb_param = map(poly -> eval_at_dict(poly, param_var_mapping), tagged_mqs_gb)
-    tagged_mqs_gb_param = map(f -> divexact(f, leading_coefficient(f)), tagged_mqs_gb_param)
-    @debug "Tagged parametric mqs: $tagged_mqs_gb_param"
+    tagged_oms_gb_param = map(poly -> eval_at_dict(poly, param_var_mapping), tagged_oms_gb)
+    tagged_oms_gb_param = map(f -> divexact(f, leading_coefficient(f)), tagged_oms_gb_param)
+    @debug "Tagged parametric oms: $tagged_oms_gb_param"
     # Reduce each fraction
     var_mapping = Dict(gens(x_ring) .=> gens(parametric_ring))
     memberships = Vector{Bool}(undef, length(to_be_reduced))
@@ -245,7 +245,7 @@ $sat_string
         num = eval_at_dict(numerator(frac), var_mapping)
         den = eval_at_dict(denominator(frac), var_mapping)
         membership, remainder = check_constructive_field_membership(
-            tagged_mqs_gb_param,
+            tagged_oms_gb_param,
             relations_between_tags,
             num,
             den,

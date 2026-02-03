@@ -20,8 +20,8 @@ rff = RationalFunctionField([[x, y, R(1)], [y, z]])
 """
 mutable struct RationalFunctionField{T}
     dennums::Vector{Vector{T}}
-    mqs::IdealMQS{T}
-    mqs_membership::IdealMQS{T}
+    oms::IdealOMS{T}
+    oms_membership::IdealOMS{T}
 
     # cached transcendence-related information
     trbasis_probability::Float64
@@ -41,8 +41,8 @@ mutable struct RationalFunctionField{T}
         @assert !isempty(dennums)
         F = new{T}(
             dennums,
-            IdealMQS(dennums),
-            IdealMQS(dennums),
+            IdealOMS(dennums),
+            IdealOMS(dennums),
             0,
             Vector{Generic.FracFieldElem{T}}(),
             Vector{T}(),
@@ -105,8 +105,8 @@ function update_trbasis_info!(F::RationalFunctionField, p::Float64)
     @assert length(F.trbasis) + length(F.trbasis_over) == length(base_vars)
 
     if old_trbasis != F.trbasis
-        F.mqs_membership =
-            IdealMQS(vcat(F.dennums, [[x, one(poly_ring(F))] for x in F.trbasis_over]))
+        F.oms_membership =
+            IdealOMS(vcat(F.dennums, [[x, one(poly_ring(F))] for x in F.trbasis_over]))
     end
 end
 
@@ -219,17 +219,17 @@ end
 # checks containment under assumption that rat_funcs are algebraic over the field
 function field_contains_algebraic_mod_p(field, rat_funcs, prime)
     ff = Nemo.Native.GF(prime)
-    mqs_generators = field.mqs_membership
-    reduce_mod_p!(mqs_generators, ff)
+    oms_generators = field.oms_membership
+    reduce_mod_p!(oms_generators, ff)
 
-    param_ring = ParamPunPam.parent_params(mqs_generators)
+    param_ring = ParamPunPam.parent_params(oms_generators)
     point = ParamPunPam.distinct_nonzero_points(ff, nvars(param_ring))
 
-    gens_specialized = ParamPunPam.specialize_mod_p(mqs_generators, point)
-    ratfuncs_mqs_specialized = specialize_fracs_to_mqs(mqs_generators, rat_funcs, point)
-    @assert parent(first(gens_specialized)) == parent(first(ratfuncs_mqs_specialized))
+    gens_specialized = ParamPunPam.specialize_mod_p(oms_generators, point)
+    ratfuncs_oms_specialized = specialize_fracs_to_oms(oms_generators, rat_funcs, point)
+    @assert parent(first(gens_specialized)) == parent(first(ratfuncs_oms_specialized))
     gb = groebner(gens_specialized)
-    return map(iszero, normalform(gb, ratfuncs_mqs_specialized))
+    return map(iszero, normalform(gb, ratfuncs_oms_specialized))
 end
 
 """
@@ -302,7 +302,7 @@ function field_contains_algebraic(field, ratfuncs, prob_threshold)
     ]
     denoms = map(denominator, ratfuncs)
     ring = parent(numerator(first(ratfuncs)))
-    den_lcm = reduce(lcm, field.mqs.dens_to_sat_orig, init = reduce(lcm, denoms))
+    den_lcm = reduce(lcm, field.oms.dens_to_sat_orig, init = reduce(lcm, denoms))
     @debug "Common lcm is $den_lcm"
 
     # this is deg(g) + 1
@@ -314,7 +314,7 @@ function field_contains_algebraic(field, ratfuncs, prob_threshold)
     end
     # computing maximum of deg(f_i) for the generators of the field
     for (i, plist) in enumerate(field.dennums)
-        extra_degree = total_degree(den_lcm) - total_degree(field.mqs.dens_qq[i])
+        extra_degree = total_degree(den_lcm) - total_degree(field.oms.dens_qq[i])
         degree = max(degree, extra_degree + maximum(total_degree, plist))
     end
     @debug "\tBound for the degrees is $degree"
@@ -332,18 +332,18 @@ function field_contains_algebraic(field, ratfuncs, prob_threshold)
     )
 
     @debug "\tSampling from $(-sampling_bound) to $(sampling_bound)"
-    mqs = field.mqs_membership
-    param_ring = ParamPunPam.parent_params(mqs)
+    oms = field.oms_membership
+    param_ring = ParamPunPam.parent_params(oms)
     point = map(v -> Nemo.QQ(rand((-sampling_bound):sampling_bound)), gens(param_ring))
-    mqs_specialized = specialize(mqs, point)
-    @debug "Computing Groebner basis ($(length(mqs_specialized)) equations)"
-    mqs_ratfuncs = specialize_fracs_to_mqs(mqs, ratfuncs, point)
-    @assert parent(first(mqs_specialized)) == parent(first(mqs_ratfuncs))
+    oms_specialized = specialize(oms, point)
+    @debug "Computing Groebner basis ($(length(oms_specialized)) equations)"
+    oms_ratfuncs = specialize_fracs_to_oms(oms, ratfuncs, point)
+    @assert parent(first(oms_specialized)) == parent(first(oms_ratfuncs))
     @debug "Starting the groebner basis computation"
-    gb = groebner(mqs_specialized)
+    gb = groebner(oms_specialized)
     @debug "Computing GB in $((time_ns() - start_time) / 1e9) seconds"
     start_time = time_ns()
-    res = map(iszero, normalform(gb, mqs_ratfuncs))
+    res = map(iszero, normalform(gb, oms_ratfuncs))
     @debug "Normal forms computed in $((time_ns() - start_time) / 1e9) seconds"
     return res
 end
