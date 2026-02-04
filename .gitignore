@@ -1,2 +1,4 @@
-/Manifest*.toml
+RationaFunctionFields/Manifest*.toml
+ParamPunPam/Manifest.toml
 .ipynb_checkpoints/
+.vscode
