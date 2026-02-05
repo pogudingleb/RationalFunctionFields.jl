@@ -27,7 +27,7 @@ end
 
 function sys_from_funcs(funcs)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
-    sys = RationalFunctionFields.fractionfree_generators_raw(rff.mqs)
+    sys = RationalFunctionFields.fractionfree_generators_raw(rff.oms)
     sys, y, x = (sys.sys, sys.indets, sys.params)
     sys = filter(!iszero, sys)
     sys, y, x
