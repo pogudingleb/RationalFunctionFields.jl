@@ -169,6 +169,7 @@ function main()
             "{{sys_str}}" => join(map(f -> "\""*string(f)*"\"", sys), ","),
         )
         for method in collect(keys(templates))
+            mkpath(joinpath(@__DIR__, method))
             content = replace(templates[method], subs...)
             @assert !occursin("{{", content)
             content = string(get_file_meta_header(comment[method_ext[method]]), content)
