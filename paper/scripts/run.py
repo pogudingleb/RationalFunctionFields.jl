@@ -78,14 +78,19 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--pattern", default="", 
-                    help='Pattern to filter. The format is CNF, the syntax is & and |.')
+                    help='Pattern to filter. Can use & and |.')
     parser.add_argument("-t", "--timeout", default="60", 
                     help='Timeout, in seconds.')
     parser.add_argument("-m", "--memory", default="20", 
                     help='Memory limit, in GB.')
+    parser.add_argument("--maple", default="/opt/maple2025/bin/maple", help='Command to run Maple.')
+    parser.add_argument("--singular", default="Singular --cpus=1 --ticks-per-sec=1000", help='Command to run Singular.')
     args = parser.parse_args()
     
     args.memory = int(args.memory)
     args.timeout = int(args.timeout)
+
+    ext_to_software['.sing'] = args.singular
+    ext_to_software['.mpl'] = args.maple
     
     main(args)

@@ -1,31 +1,27 @@
 ## Benchmarks
 
-31 December, 2025. Alexander Demin.
-
-Benchmarking the computation of Groebner bases in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
+Benchmarking implementations for computing Groebner bases in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
 
 #### How to run
 
-1. Do `julia populate.jl` to generate directories with benchmark scripts (see below). The generated scripts can be run individually. 
+1. Run `julia populate.jl` to generate directories with benchmark scripts.
 
-#### Benchmark scripts
+2. The generated scripts can be run individually. Alternatively, use the following command to run many at a time:
 
-> f4-direct
+```
+python ../run.py --pattern="benchmark-1 & Goodwin | SLIQR" --timeout=3600 --memory=10"
+```
 
-Method: Groebner.jl, directly computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
+(check `python ../run.py --help` for options)
 
-> f4-flat
+#### Benchmarked methods
 
-Method: Groebner.jl, computing in $\mathbb{Q}[x_1,\ldots,x_m, y_1,\ldots,y_n]$ using a block ordering with $x_1,\ldots,x_m < y_1,\ldots,y_n$.
+1. f4-direct. Groebner.jl, directly computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
 
-> ffmodstd
+2. f4-flat. Groebner.jl, computing in $\mathbb{Q}[x_1,\ldots,x_m, y_1,\ldots,y_n]$ using a block ordering with $x_1,\ldots,x_m < y_1,\ldots,y_n$.
 
-Method: ffmodstd package in Singular, uses interpolation.
+3. ffmodstd. ffmodstd package in Singular, uses interpolation.
 
-> paramgb
+4. paramgb. ParamPunPam.jl, our algorithm, computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$ using sparse interpolation.
 
-Method: ParamPunPam.jl, computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$ using sparse interpolation.
-
-> slimgb
-
-Method: slimgb package in Singular.
+5. slimgb. slimgb package in Singular.

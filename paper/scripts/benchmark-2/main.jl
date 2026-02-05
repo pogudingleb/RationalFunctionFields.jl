@@ -1,4 +1,4 @@
-import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env"))
+import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env")); Pkg.instantiate()
 
 using Revise
 using StructuralIdentifiability
@@ -53,10 +53,10 @@ function problems_simplification_identifiable_funcs(;with_states=true)
     
     for name in collect(keys(benchmarks))
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name"
             continue
         end
-        if !isempty(ARGS) && !occursin(ARGS[1], string(name))
+        if !isempty(ARGS) && !occursin(string(name), ARGS[1])
             continue
         end
         push!(odes, benchmarks[name])
@@ -98,9 +98,9 @@ function a_single_run_of_implementation(funcs)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
     D = (typemax(Int), typemax(Int))
     t = @elapsed RationalFunctionFields.groebner_basis_coeffs(rff, ordering=DegRevLex(), up_to_degree=D)
-    @assert length(rff.mqs.cached_groebner_bases) == 1
-    gb = first(values(rff.mqs.cached_groebner_bases))
-    n_spec, n_reduce = rff.mqs.stats.n_spec_mod_p, rff.mqs.stats.n_red_mod_p
+    @assert length(rff.oms.cached_groebner_bases) == 1
+    gb = first(values(rff.oms.cached_groebner_bases))
+    n_spec, n_reduce = rff.oms.stats.n_spec_mod_p, rff.oms.stats.n_red_mod_p
 
     @info "Time:" t
     @info "Number of evaluations:" n_spec n_reduce
@@ -117,7 +117,7 @@ end
 
 function compute_max_total_degrees(funcs)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
-    degs = paramgb_only_degrees(rff.mqs, ordering=DegRevLex())
+    degs = paramgb_only_degrees(rff.oms, ordering=DegRevLex())
     N, D = 0, 0
     for i in degs
 	N, D = argmax(sum, vcat((N,D), i))
@@ -129,8 +129,8 @@ end
 
 function try_to_compute_full_gb(funcs)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
-    t = @elapsed gb = paramgb(rff.mqs)
-    n_spec, n_reduce = rff.mqs.stats.n_spec_mod_p, rff.mqs.stats.n_red_mod_p
+    t = @elapsed gb = paramgb(rff.oms)
+    n_spec, n_reduce = rff.oms.stats.n_spec_mod_p, rff.oms.stats.n_red_mod_p
     return Dict(
         :n_spec_full=>n_spec,
         :n_red_full=>n_reduce,
@@ -141,8 +141,8 @@ end
 
 function compute_sharp_n_spec(funcs; deg=nothing)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
-    t = @elapsed gb = paramgb(rff.mqs, up_to_degree=deg)
-    n_spec, n_reduce = rff.mqs.stats.n_spec_mod_p, rff.mqs.stats.n_red_mod_p
+    t = @elapsed gb = paramgb(rff.oms, up_to_degree=deg)
+    n_spec, n_reduce = rff.oms.stats.n_spec_mod_p, rff.oms.stats.n_red_mod_p
     return Dict(
         :n_spec_sharp=>n_spec
     )
@@ -152,9 +152,9 @@ function compute_time_per_eval(funcs)
     # p = Nemo.Native.GF(2^62 + 135)
     p = Nemo.Native.GF(2^30 + 3)
     rff = RationalFunctionFields.RationalFunctionField(funcs);
-    StructuralIdentifiability.ParamPunPam.reduce_mod_p!(rff.mqs, p)
-    point = rand(p, length(Nemo.gens(StructuralIdentifiability.ParamPunPam.parent_params(rff.mqs))))
-    eqs = StructuralIdentifiability.ParamPunPam.specialize_mod_p(rff.mqs, point)
+    StructuralIdentifiability.ParamPunPam.reduce_mod_p!(rff.oms, p)
+    point = rand(p, length(Nemo.gens(StructuralIdentifiability.ParamPunPam.parent_params(rff.oms))))
+    eqs = StructuralIdentifiability.ParamPunPam.specialize_mod_p(rff.oms, point)
     print("groebner (rand.)   ")
     b1 = @belapsed Groebner.groebner($eqs, linalg=:randomized, ordering=Groebner.DegRevLex())
     display(b1)
@@ -221,7 +221,24 @@ for problem in problems
     println("====================================")
 end
 
-pretty_table(reduce(hcat, [v for (k, v) in table]), column_labels=string.(collect(keys(table))))
+_table = deepcopy(table)
+begin
+    table[:name] = map(c -> chopsuffix(c, " with_states=false"), table[:name])
+    table_6 = OrderedDict(k => table[k] for k in [:name, :input_n, :input_deg, :max_deg, :our_deg, :n_spec_sharp]);
+    table_6[:name] = map(c -> length(c) > 40 ? c[1:40] : c, table_6[:name])
+    pretty_table(reduce(hcat, [v for (k, v) in table_6]), column_labels=["Example", "# vars.", "degrees (input)", "degrees (full GB)", "degrees (ours)", "evals (ours)"], fit_table_in_display_vertically=false)
+end
+begin
+    table[:name] = map(c -> chopsuffix(c, " with_states=false"), table[:name])
+    table_6 = OrderedDict(k => table[k] for k in [:name, :time_per_gb_det, :time_per_apply]);
+    table_6[:name] = map(c -> length(c) > 40 ? c[1:40] : c, table_6[:name])
+    table_6[:speedup] = ["$(round(table_6[:time_per_gb_det][i] / table_6[:time_per_apply][i], digits=2))" for i in 1:length(table_6[:time_per_gb_det])]
+    pretty_table(reduce(hcat, [v for (k, v) in table_6]), column_labels=["Example", "F4 time", "F4 time (apply)", "Speedup"], fit_table_in_display_vertically=false)
+end
+
+# pretty_table(reduce(hcat, [v for (k, v) in table]), column_labels=string.(collect(keys(table))))
+
+
 
 #=
 begin
@@ -235,7 +252,4 @@ table_6[:name] = map(c -> length(c) > 40 ? c[1:40] : c, table_6[:name])
 pretty_table(reduce(hcat, [v for (k, v) in table_6]), column_labels=string.(collect(keys(table_6))), fit_table_in_display_vertically=false)
 pretty_table(reduce(hcat, [v for (k, v) in table_6]), column_labels=string.(collect(keys(table_6))), backend=:markdown)
 end
-=#
-
-
 =#
