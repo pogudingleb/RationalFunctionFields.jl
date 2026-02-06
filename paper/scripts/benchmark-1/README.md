@@ -9,7 +9,7 @@ Benchmarking implementations for computing Groebner bases in $\mathbb{Q}(x_1,\ld
 2. The generated scripts can be run individually. Alternatively, use the following command to run many at a time:
 
 ```
-python ../run.py --pattern="benchmark-1 & Goodwin | SLIQR" --timeout=3600 --memory=10
+python ../run.py --pattern='benchmark-1 & Goodwin | SLIQR' --timeout=3600
 ```
 
 (check `python ../run.py --help` for options)

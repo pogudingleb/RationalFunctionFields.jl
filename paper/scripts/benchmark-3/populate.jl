@@ -1,4 +1,5 @@
-using Revise
+import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env"))
+
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 
 # get `benchmarks`
@@ -47,7 +48,7 @@ println("min terms = ", argmin(sum, trms))
 
     "maple_simplify" => 
 Dict(
-"_generate_gens" =>
+"_generate_input" =>
 """
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 
@@ -60,7 +61,7 @@ ode = benchmarks[name][:ode]
 
 funcs = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=with_states)[1]
 
-filename = string(name, \"_gens.mpl\")
+filename = string(name, \"_input.mpl\")
 open(joinpath(@__DIR__, filename), \"w\") do io
     fracs = RationalFunctionFields.dennums_to_fractions(funcs)
     fracs_str = join(map(s -> replace(s, \"//\" => \"/\", \"gamma\" => \"gama\", \"I\" => \"_I\"), map(string, fracs)), \", \")
@@ -68,9 +69,9 @@ open(joinpath(@__DIR__, filename), \"w\") do io
 end
 """,
 
-"_run_simplify" =>
+"" =>
 """
-read "{{dir}}/{{name}}_gens.mpl";
+read "{{dir}}/{{name}}_input.mpl";
 read "{{dir}}/../../AllIdentifiableFunctions/ComputeIdentifiableFunctions.mpl";
         
 simple := FilterGenerators(FieldToIdeal(gens));
@@ -98,7 +99,7 @@ ode = benchmarks[name][:ode]
 
 funcs = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=with_states)[1]
 
-filename = string(name, "_gens_stats.txt")
+filename = string(name, "_input_stats.txt")
 open(joinpath(@__DIR__, filename), "w") do io
     println(io, "format [[den, nums]]")
     println(io, "length(string(...)) = ", length(string(funcs)))
@@ -170,7 +171,7 @@ println("independent: ", are_algebraically_independent(simple_funcs))
 
 method_ext = Dict(
     "simplify" => Dict("" => ".jl"),
-    "maple_simplify" => Dict("_generate_gens" => ".jl", "_run_simplify" => ".mpl"),
+    "maple_simplify" => Dict("_generate_input" => ".jl", "" => ".mpl"),
     "input_stats" => Dict("_collect_input_stats" => ".jl"),
     "independence" => Dict("" => ".jl")
 )

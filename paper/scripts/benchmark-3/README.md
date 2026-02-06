@@ -1,34 +1,45 @@
-## Benchmarks
+# Simplification in Julia and Maple
 
-29 August, 2025. Alexander Demin.
+## In Julia
 
-Benchmarking the computation of Groebner bases in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
+1. Generate scripts:
 
-#### Benchmark scripts
+```
+julia populate.jl
+```
 
-> f4-block-ordering.jl
+2. Run some of the scripts (say, only some analysis, for only some models, using only Julia):
 
-Method: Groebner.jl, computing in $\mathbb{Q}[x_1,\ldots,x_m, y_1,\ldots,y_n]$ using a block ordering with $x_1,\ldots,x_m < y_1,\ldots,y_n$.
+```
+python ../run.py --pattern='benchmark-3 & simplify & Goodwin.jl | SLIQR.jl' --timeout=3600
+```
 
-> f4-direct.jl
+3. Collect and write results:
 
-Method: Groebner.jl, directly computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$.
+```
+julia collect.jl
+```
 
-> paramgb.jl
+## In Maple
 
-Method: ParamPunPam.jl, computing in $\mathbb{Q}(x_1,\ldots,x_m)[y_1,\ldots,y_n]$ using sparse interpolation.
+0. Get `AllIdentifiableFunctions`:
 
-> slimgb.jl
+```
+git clone https://github.com/pogudingleb/AllIdentifiableFunctions
+```
 
-Method: slimgb from Singular.jl.
+1. Same as in Julia.
 
-#### Benchmark systems
-- [Simson-3](https://github.com/symbolicdata/data/blob/master/XMLResources/IntPS/Geometry.Simson_3.xml)
-- [Chou-302](https://github.com/symbolicdata/data/blob/master/XMLResources/IntPS/Geometry.Chou.302_1.xml)
-- Param-1
-- Param-2
-- Goodwin (the source is not available)
+2. First, generate the input generating sets for Maple:
 
-#### References
-- https://github.com/symbolicdata/data
-- https://symbolicdata.github.io/PolynomialSystems
+```
+python ../run.py --pattern='benchmark-3 & maple_simplify & generate_input & Goodwin | SLIQR' --timeout=3600
+```
+
+Then, run Maple code with:
+
+```
+python ../run.py --pattern='benchmark-3 & maple_simplify & Goodwin.mpl | SLIQR.mpl' --timeout=3600
+```
+
+3. Same as in Julia.

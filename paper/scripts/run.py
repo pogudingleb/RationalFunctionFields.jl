@@ -57,11 +57,13 @@ def main(args):
         log_name = file + "_output.txt"
         log_path = os.path.join(os.path.dirname(file_path), log_name)
         software = ext_to_software[ext]
-        print(f"({i+1:2}/{len(all_files)}) {file_path}: Running")
+        print(f"({i+1:2}/{len(all_files)}) Running: {file_path}")
+        print(f"({i+1:2}/{len(all_files)}) Results will be written to: {log_path}")
+        ulimit = "" if args.memory == 0 else f"ulimit -v {args.memory * 2**20} && "
         with open(log_path, 'w') as log_io:
             try:
                 result = subprocess.run(
-                    [f"ulimit -v {args.memory * 2**20} && timeout -s KILL {args.timeout}s {software} {file_path}"],
+                    [f"{ulimit}timeout -s KILL {args.timeout}s {software} {file_path}"],
                     timeout=args.timeout,
                     stderr=log_io,
                     stdout=log_io,
@@ -69,9 +71,9 @@ def main(args):
                     text=True,
                 )
             except subprocess.TimeoutExpired:
-                print(f"({i+1:2}/{len(all_files)}) {file_path}: Process timed out after {args.timeout} seconds.")
+                print(f"({i+1:2}/{len(all_files)}) Process timed out after {args.timeout} seconds: {file_path}")
             except Exception as e:
-                print(f"({i+1:2}/{len(all_files)}) {file_path}: An error occurred: {e}")
+                print(f"({i+1:2}/{len(all_files)}) An error occurred: {e} : {file_path}")
             finally:
                 log_io.close()
 
@@ -81,7 +83,7 @@ if __name__ == "__main__":
                     help='Pattern to filter. Can use & and |.')
     parser.add_argument("-t", "--timeout", default="60", 
                     help='Timeout, in seconds.')
-    parser.add_argument("-m", "--memory", default="20", 
+    parser.add_argument("-m", "--memory", default="0", 
                     help='Memory limit, in GB.')
     parser.add_argument("--maple", default="/opt/maple2025/bin/maple", help='Command to run Maple.')
     parser.add_argument("--singular", default="Singular --cpus=1 --ticks-per-sec=1000", help='Command to run Singular.')

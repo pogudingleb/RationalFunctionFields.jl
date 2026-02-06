@@ -30,7 +30,6 @@ templates = Dict(
 Dict(
 "" =>
 """
-import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "..", "env"))
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 
 # 0. Define parameters.
@@ -61,7 +60,7 @@ filename_map = Dict(
     "populate_data_1" => "run",
 )
 
-prefix = "../data-1"
+prefix = "../../data"
 
 normname(name) = replace(string(name), "." => "_", " " => "_")
 
