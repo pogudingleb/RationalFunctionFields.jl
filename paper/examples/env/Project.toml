@@ -1,0 +1,5 @@
+[deps]
+Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
+ParamPunPam = "3e851597-e36f-45a9-af0a-b7781937992f"
+RationalFunctionFields = "73480bc8-48a2-41cc-880f-208b490ccf65"
+StructuralIdentifiability = "220ca800-aa68-49bb-acd8-6037fa93a544"
