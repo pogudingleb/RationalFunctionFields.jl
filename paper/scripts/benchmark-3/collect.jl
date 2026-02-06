@@ -1,4 +1,5 @@
-import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env"))
+import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env")); Pkg.instantiate()
+
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 import Base.Iterators
 using PrettyTables
@@ -58,7 +59,7 @@ function get_julia_result(name)
 end
 
 function get_maple_input_gens(name)
-    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_gens.mpl"))
+    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_input.mpl"))
     result = Dict{Any,Any}(
         :maple_input_gens => nothing, 
     )
@@ -74,7 +75,7 @@ function get_maple_input_gens(name)
 end
 
 function get_maple_result(name)
-    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_run_simplify_output.txt"))
+    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_output.txt"))
     result = Dict{Any,Any}(
         :maple_funcs => nothing, 
         :maple_time => nothing,
@@ -99,7 +100,7 @@ function get_maple_result(name)
 end
 
 function get_gens_stats(name)
-    output_filepath = joinpath(@__DIR__, prefix, "input_stats", string(name, "_gens_stats.txt"))
+    output_filepath = joinpath(@__DIR__, prefix, "input_stats", string(name, "_input_stats.txt"))
     result = Dict{Any,Any}(
         :max_deg => nothing,
         :min_deg => nothing,
@@ -504,11 +505,11 @@ function main()
     
     columns = [:name, :julia_funcs]
     results1 = foo_julia_and_maple("table_funcs_julia_and_maple_fan.md", columns)
-    print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
+    # print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
     
     columns = [:name, :original_funcs]
     results11 = foo_julia_original_generators(columns)
-    print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
+    # print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
 
     rat = filter(res -> res[:original_funcs] == nothing || occursin("/", res[:original_funcs]), results11);
     poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))

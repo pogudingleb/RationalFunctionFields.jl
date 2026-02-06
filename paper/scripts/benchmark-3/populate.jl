@@ -1,4 +1,4 @@
-import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env"))
+import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env")); Pkg.instantiate()
 
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 

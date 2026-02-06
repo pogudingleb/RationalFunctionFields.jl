@@ -14,7 +14,7 @@ julia populate.jl
 python ../run.py --pattern='benchmark-3 & simplify & Goodwin.jl | SLIQR.jl' --timeout=3600
 ```
 
-3. Collect and write results:
+3. Collect results:
 
 ```
 julia collect.jl
