@@ -1,6 +1,7 @@
 # Paper
 
 This directory contains some supplementary material for the paper *Simple generators of rational function fields*, 2026 (URL: ...).
+We used Julia 1.12.4, Singular 4.4.1, and Maple 2025.
 
 ## Data
 

@@ -201,9 +201,9 @@ version = "0.4.4"
 
 [[deps.RationalFunctionFields]]
 deps = ["AbstractAlgebra", "Combinatorics", "Groebner", "LinearAlgebra", "Nemo", "ParamPunPam", "Random", "TimerOutputs"]
-git-tree-sha1 = "bab775246857d291c4f1c94e1425bd8f0f17d9bd"
+path = "../../../RationalFunctionFields"
 uuid = "73480bc8-48a2-41cc-880f-208b490ccf65"
-version = "0.2.3"
+version = "0.3.0"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -224,7 +224,9 @@ version = "1.12.0"
 
 [[deps.StructuralIdentifiability]]
 deps = ["AbstractAlgebra", "Combinatorics", "DataStructures", "Dates", "Groebner", "IterTools", "LinearAlgebra", "Logging", "MacroTools", "Nemo", "ParamPunPam", "PrecompileTools", "Primes", "Random", "RationalFunctionFields", "TimerOutputs"]
-git-tree-sha1 = "d1c859aceed2b749627e959332d502489e84dd21"
+git-tree-sha1 = "95bec938f5a72297a0ec34b4a8e2fe67c1be4248"
+repo-rev = "4b1c4093d864e40e536e29ce1a0e63dfe464d458"
+repo-url = "https://github.com/SciML/StructuralIdentifiability.jl"
 uuid = "220ca800-aa68-49bb-acd8-6037fa93a544"
 version = "0.5.18"
 
