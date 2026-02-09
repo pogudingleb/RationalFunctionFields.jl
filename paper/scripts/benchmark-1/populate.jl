@@ -42,6 +42,7 @@ end
 templates = Dict(
     "f4-direct" => 
 """
+using Pkg; Pkg.activate(joinpath(@__DIR__, "..", "..", "env"))
 using Groebner, Nemo
 include(joinpath(@__DIR__, "..", "parser.jl"))
 include(joinpath(@__DIR__, "..", "utils.jl"))
@@ -63,6 +64,7 @@ for f in gb println(f) end
 
     "f4-flat" => 
 """
+using Pkg; Pkg.activate(joinpath(@__DIR__, "..", "..", "env"))
 using Groebner, Nemo
 include(joinpath(@__DIR__, "..", "parser.jl"))
 
@@ -77,6 +79,7 @@ for f in gb println(f) end
 
     "paramgb" =>
 """
+using Pkg; Pkg.activate(joinpath(@__DIR__, "..", "..", "env"))
 using ParamPunPam, Nemo
 include(joinpath(@__DIR__, "..", "parser.jl"))
 include(joinpath(@__DIR__, "..", "utils.jl"))
