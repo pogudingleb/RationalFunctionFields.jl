@@ -505,7 +505,11 @@ function main()
     end
     
     columns = [:name, :julia_funcs]
-    result_path1, results1 = foo_julia_and_maple(joinpath(prefix,"table_funcs_julia_and_maple_fan.md"), columns)
+    result_path1, results1 = foo_julia_and_maple(joinpath(prefix,"simple_funcs_julia.md"), columns)
+
+    columns = [:name, :maple_funcs]
+    result_path1_mpl, results1_mpl = foo_julia_and_maple(joinpath(prefix,"simple_funcs_maple.md"), columns)
+    
     # print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
     
     # columns = [:name, :original_funcs]
@@ -516,7 +520,7 @@ function main()
     # poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))
     
     columns = [:name, :julia_time, :maple_time]
-    result_path12, table12 = foo_julia_and_maple(joinpath(prefix,"table_time_julia_and_maple_fan.md"), columns)
+    result_path12, table12 = foo_julia_and_maple(joinpath(prefix,"time_julia_and_maple.md"), columns)
     
     columns = [
             :name, :elems, :bytes, :max_deg,
@@ -527,9 +531,9 @@ function main()
             :min_deg_per_var,
             :min_gen_deg_per_var,
         ]
-    result_path2, results2 = foo_gens_stats(joinpath(prefix,"table_input_stats.md"), columns)
+    result_path2, results2 = foo_gens_stats(joinpath(prefix,"input_stats.md"), columns)
     
-    result_path3, results3 = foo_independence(joinpath(prefix,"table_independence.md"), [:name, :independent])
+    result_path3, results3 = foo_independence(joinpath(prefix,"independence.md"), [:name, :independent])
     
     results4 = foo_get_maple_input_gens()
     
@@ -539,9 +543,10 @@ function main()
     println("#"^80); println("#"^80)
     println()
     println("1. Results of simplification written to:\n$(result_path1)\n") 
-    println("2. Original generating sets written to :\n$(result_path2)\n")
-    println("3. Algebraic independence written to   :\n$(result_path3)\n")
-    println("4. Appendix in .tex written to         :\n$(result_path5)\n")
+    println("2. Results of Maple written to         :\n$(result_path1_mpl)\n") 
+    println("3. Original generating sets written to :\n$(result_path2)\n")
+    println("4. Algebraic independence written to   :\n$(result_path3)\n")
+    println("5. Appendix in .tex written to         :\n$(result_path5)\n")
     println("Done!")
     println("#"^80); println("#"^80)
 end

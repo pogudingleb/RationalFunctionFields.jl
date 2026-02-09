@@ -14,7 +14,7 @@ ext_to_software = {
 }
 
 def pattern_occurs(pattern, string):
-    conj = pattern.split("&")
+    conj = pattern.split(",")
     for c in conj:
         disj = c.split("|")
         holds = False
@@ -63,7 +63,8 @@ def main(args):
         with open(log_path, 'w') as log_io:
             try:
                 result = subprocess.run(
-                    [f"{ulimit}timeout -s KILL {args.timeout}s {software} {file_path}"],
+                    # [f"{ulimit}timeout -s KILL {args.timeout}s {software} {file_path}"],
+                    [f"{ulimit} {software} {file_path}"],
                     timeout=args.timeout,
                     stderr=log_io,
                     stdout=log_io,
@@ -81,12 +82,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--pattern", default="", 
                     help='Pattern to filter. Can use & and |.')
-    parser.add_argument("-t", "--timeout", default="60", 
+    parser.add_argument("-t", "--timeout", default="3600", 
                     help='Timeout, in seconds.')
     parser.add_argument("-m", "--memory", default="0", 
                     help='Memory limit, in GB.')
-    parser.add_argument("--maple", default="/opt/maple2025/bin/maple", help='Command to run Maple.')
-    parser.add_argument("--singular", default="Singular --cpus=1 --ticks-per-sec=1000", help='Command to run Singular.')
+    parser.add_argument("--maple", default=ext_to_software[".mpl"], help='Command to run Maple (e.g., /opt/maple2025/bin/maple).')
+    parser.add_argument("--singular", default="Singular --cpus=1 --ticks-per-sec=1000", help=ext_to_software[".sing"])
     args = parser.parse_args()
     
     args.memory = int(args.memory)
