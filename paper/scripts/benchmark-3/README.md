@@ -1,5 +1,7 @@
 # Simplification in Julia and Maple
 
+Script for running Julia implementation of our algorithm and the Maple implementation of the one from (https://arxiv.org/abs/2004.07774) on our benchmark suite and collecting various statistics.
+
 ## In Julia
 
 1. Generate scripts:
@@ -8,10 +10,16 @@
 julia populate.jl
 ```
 
-2. Run some of the scripts (say, only some analysis, for only some models, using only Julia):
+2. Run some of the scripts (say, for only some models):
 
+- Run our simplification algorithm for Goodwin and SLIQR:
 ```
 python ../run.py --pattern='benchmark-3 & simplify & Goodwin.jl | SLIQR.jl' --timeout=3600
+```
+
+- Collect statistics about the original generating sets for Goodwin and SLIQR:
+```
+python src/run.py --pattern='benchmark-3 & input_stats & Goodwin.jl | SLIQR.jl" --timeout=3600
 ```
 
 3. Collect results:

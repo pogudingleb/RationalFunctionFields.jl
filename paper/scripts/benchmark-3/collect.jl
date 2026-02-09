@@ -159,7 +159,7 @@ function foo_get_maple_input_gens()
     results = []
     for name in keys(benchmarks)
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name, as requested"
             continue
         end
         maple_result = get_maple_input_gens(name)
@@ -176,7 +176,7 @@ function foo_julia_and_maple(filename, columns)
     results = []
     for name in keys(benchmarks)
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name, as requested"
             continue
         end
         julia_result = get_julia_result(name)
@@ -204,14 +204,14 @@ function foo_julia_and_maple(filename, columns)
         println("Result written to $result_path")
     end
 
-    results
+    result_path, results
 end
 
 function foo_julia_original_generators(columns)
     results = []
     for name in keys(benchmarks)
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name, as requested"
             continue
         end
         common = Dict(:name => name)
@@ -239,7 +239,7 @@ function foo_gens_stats(filename, columns)
     results = []
     for name in keys(benchmarks)
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name, as requested"
             continue
         end
         gens_stats_result = get_gens_stats(name)
@@ -266,14 +266,14 @@ function foo_gens_stats(filename, columns)
         println("Result written to $result_path")
     end
 
-    results
+    result_path, results
 end
 
 function foo_independence(filename, columns)
     results = []
     for name in keys(benchmarks)
         if any(s -> occursin(s, string(name)), skipped)
-            @error "Skipping $name"
+            @warn "Skipping $name, as requested"
             continue
         end
         independence_result = get_independence_result(name)
@@ -300,7 +300,7 @@ function foo_independence(filename, columns)
         println("Result written to $result_path")
     end
 
-    results
+    result_path, results
 end
 
 function paginate(words; chars_per_page = 40, sep = ",")
@@ -336,9 +336,9 @@ function nicify(result, f; do_paginate=true)
     f = map(strip, f)
     f = filter(!isempty, f)
     f = map(x -> strip(x, ','), f)
-    println("before latexify: ", f)
+    # println("before latexify: ", f)
     f = map(x -> join(String.(latexify.(split(x, ", "), mult_symbol="")), ", "), f)
-    println("after String(latex()): ", f)
+    # println("after String(latex()): ", f)
     if do_paginate
         f = join(f, ",\\\\")
     else
@@ -388,7 +388,7 @@ end
 function make_nice_latex_table(filename, columns, results)
 
     for result in results
-        println(result[:name])
+        # println(result[:name])
         f = result[:julia_funcs]
         f = nicify(result, f)
         rowspace = "\\setlength{\\extrarowheight}{$(occursin("frac", f) ? 8 : 0)pt}"
@@ -441,6 +441,7 @@ function make_nice_latex_table(filename, columns, results)
             bytes = get(result, :bytes, nothing)
             if isnothing(bytes) bytes = "0" end
             max_deg = get(result, :max_deg, nothing)
+            if vars == nothing vars = "nothing" end
             println(io, "\\item \\myexample{$(name)} \\cite{}.\n")
             println(io, "Original generating set information: $(length(split(vars, ","))) indeterminates; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n")
             println(io, "Indeterminates: $vars.\n")
@@ -459,7 +460,7 @@ function make_nice_latex_table(filename, columns, results)
         println("Result written to $result_path")
     end
 
-    table
+    result_path, table
 end
 
 function merge_by_name(results_lists...)
@@ -504,19 +505,18 @@ function main()
     end
     
     columns = [:name, :julia_funcs]
-    results1 = foo_julia_and_maple("table_funcs_julia_and_maple_fan.md", columns)
+    result_path1, results1 = foo_julia_and_maple(joinpath(prefix,"table_funcs_julia_and_maple_fan.md"), columns)
     # print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
     
-    columns = [:name, :original_funcs]
-    results11 = foo_julia_original_generators(columns)
+    # columns = [:name, :original_funcs]
+    # results11 = foo_julia_original_generators(columns)
     # print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
 
-    rat = filter(res -> res[:original_funcs] == nothing || occursin("/", res[:original_funcs]), results11);
-    poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))
-    @error "" length(poly_to_rat)
+    # rat = filter(res -> res[:original_funcs] == nothing || occursin("/", res[:original_funcs]), results11);
+    # poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))
     
     columns = [:name, :julia_time, :maple_time]
-    table2 = foo_julia_and_maple("table_time_julia_and_maple_fan.md", columns)
+    result_path12, table12 = foo_julia_and_maple(joinpath(prefix,"table_time_julia_and_maple_fan.md"), columns)
     
     columns = [
             :name, :elems, :bytes, :max_deg,
@@ -527,15 +527,23 @@ function main()
             :min_deg_per_var,
             :min_gen_deg_per_var,
         ]
-    results2 = foo_gens_stats("table_input_stats.md", columns)
+    result_path2, results2 = foo_gens_stats(joinpath(prefix,"table_input_stats.md"), columns)
     
-    results3 = foo_independence("table_independence.md", [:name, :independent])
+    result_path3, results3 = foo_independence(joinpath(prefix,"table_independence.md"), [:name, :independent])
     
     results4 = foo_get_maple_input_gens()
     
     results = merge_by_name(results1,results2,results3,results4)
-    table11 = make_nice_latex_table("table.tex", columns, results)
+    result_path5, table11 = make_nice_latex_table(joinpath(prefix,"appendix.tex"), columns, results)
 
+    println("#"^80); println("#"^80)
+    println()
+    println("1. Results of simplification written to:\n$(result_path1)\n") 
+    println("2. Original generating sets written to :\n$(result_path2)\n")
+    println("3. Algebraic independence written to   :\n$(result_path3)\n")
+    println("4. Appendix in .tex written to         :\n$(result_path5)\n")
+    println("Done!")
+    println("#"^80); println("#"^80)
 end
 
 
