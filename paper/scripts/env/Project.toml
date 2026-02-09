@@ -9,6 +9,7 @@ Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 RationalFunctionFields = "73480bc8-48a2-41cc-880f-208b490ccf65"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StructuralIdentifiability = "220ca800-aa68-49bb-acd8-6037fa93a544"
 
 [sources]
 RationalFunctionFields = {path = "../../../RationalFunctionFields"}
