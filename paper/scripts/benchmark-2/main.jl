@@ -175,10 +175,11 @@ end
 function basic_stats(funcs)
     n = length(gens(parent(funcs[1][1])))
     N, D = 0, 0
-    for arr in funcs
-	den = arr[1]
-	degs = map(num -> (total_degree(num), total_degree(den)), arr[2:end])
-	N, D = argmax(sum, vcat((N,D), degs))
+    fracs = RationalFunctionFields.dennums_to_fractions(funcs)
+    for frac in fracs
+        num, den = numerator(frac), denominator(frac)
+    	degs = (total_degree(num), total_degree(den))
+    	N, D = argmax(sum, [(N,D), degs])
     end
     return Dict{Any,Any}(
         :input_n => n,
