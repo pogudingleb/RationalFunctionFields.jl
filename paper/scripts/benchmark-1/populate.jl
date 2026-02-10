@@ -2,6 +2,8 @@ import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env")); Pkg.instantiate()
 using StructuralIdentifiability, RationalFunctionFields, Nemo, Dates
 
 include("i4-boku.jl")
+include("simson-3.jl")
+include("param-1.jl")
 include("param-2.jl")
 include("moments3.jl")
 
@@ -138,7 +140,7 @@ function main()
     if isempty(ARGS)
         want_systems = ["Bilirubin", "EAIHRD", "SLIQR", "Lincomp2", "Pharm", "MAPK_5out", "Akt"]
     else
-        want_systems = ARGS
+        want_systems = split(ARGS[1], ",")
     end
     
     systems = []
@@ -152,12 +154,14 @@ function main()
         end
         try
             push!(systems, Dict(:name => name, :system => sys_from_ode(benchmarks[name])))
-        catch e end
+        catch e println(e) end
     end
     
     push!(systems, Dict(:name => :moments3, :system => sys_from_funcs(moments3())))
     push!(systems, Dict(:name => :i4_boku, :system => i4_boku()))
     push!(systems, Dict(:name => :param2, :system => param2()))
+    push!(systems, Dict(:name => :param1, :system => param1()))
+    push!(systems, Dict(:name => :simson3, :system => simson3()))
         
     for system in systems
         name, sys = system[:name], system[:system]

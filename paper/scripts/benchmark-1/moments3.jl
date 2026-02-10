@@ -1,4 +1,4 @@
-# TODO: reference
+# Example 7.11 from "Simple generators of rational function fields"
 using Nemo
 
 function moments3()

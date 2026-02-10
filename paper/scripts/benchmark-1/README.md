@@ -4,12 +4,16 @@ Benchmarking implementations for computing Groebner bases in $\mathbb{Q}(x_1,\ld
 
 #### How to run
 
-1. Run `julia populate.jl` to generate directories with benchmark scripts.
+1. To generate directories with benchmark scripts, run:
+
+```julia
+julia populate.jl "Bilirubin,EAIHRD,SLIQR,Lincomp2,Pharm,MAPK_5out,Fujita,Goodwin,i4_boku,param1,param2,simson3"
+```
 
 2. The generated scripts can be run individually. Alternatively, use the following command to run many at a time:
 
 ```
-python ../run.py --pattern='benchmark-1, Goodwin | simson-3'
+python ../run.py --pattern='benchmark-1, Fujita | Goodwin'
 ```
 
 (check `python ../run.py --help` for options, such as specifying the path for Maple and Singular)

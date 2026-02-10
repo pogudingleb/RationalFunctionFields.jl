@@ -1,4 +1,5 @@
-# TODO: reference
+# From PhD thesis "Groebner Bases over Extention Fields of Q", Dereje Kifle Boku, 2016
+# https://nbn-resolving.de/urn:nbn:de:hbz:386-kluedo-44289
 using Nemo
 
 function i4_boku()
