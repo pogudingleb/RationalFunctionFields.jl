@@ -22,6 +22,11 @@ python ../run.py --pattern='benchmark-3, simplify, Goodwin.jl | SLIQR.jl'
 python ../run.py --pattern='benchmark-3, input_stats, Goodwin | SLIQR'
 ```
 
+- Collect statistics about algebraic independence of simplified generators for Goodwin and SLIQR:
+```
+python ../run.py --pattern='benchmark-3, independence, Goodwin | SLIQR'
+```
+
 3. Collect results:
 
 ```
