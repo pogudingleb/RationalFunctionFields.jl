@@ -1,0 +1,2 @@
+[(2*b*d*g + 2*b*nu)//g, (a*b*d^2*g^2 + 4*a*b*d*g*nu + 3*a*b*nu^2 + b*d^2*g^3 + b*d^2*g^2*nu + 4*b*d*g^2*nu + 2*b*d*g*nu^2 + 3*b*g*nu^2 + b*nu^3)//g, a*d*g + d*g^2 + d*g*nu + nu^2, -1, -a*d*g - d*g^2 - d*g*nu - nu^2, (a*b + b*g + b*nu)//g, d*g + nu, -d*g - nu, (2*a*b*d*g + 3*a*b*nu + 2*b*d*g^2 + 2*b*d*g*nu + 3*b*g*nu + 2*b*nu^2)//g, (a*b*d^2*g^2*nu + 2*a*b*d*g*nu^2 + a*b*nu^3 + b*d^2*g^3*nu + 2*b*d*g^2*nu^2 + b*g*nu^3)//g, (b*d^2*g^2 + 2*b*d*g*nu + b*nu^2)//g, b//g]
+

@@ -1,0 +1,1 @@
+[s, b, Ninv, a + g, a*e*g, a*g + e*g*s - g*s]

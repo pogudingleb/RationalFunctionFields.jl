@@ -1,0 +1,2 @@
+[(-N*pp)//beta, (-N*mu*pp - N*pp*r)//beta, q, (N*mu*pp + N*mu*q)//beta, (N*mu)//beta, q, -N]
+

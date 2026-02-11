@@ -1,0 +1,2 @@
+[-s_T, -r, d_T, beta*c*d_I + c*d_I*r, c, beta*c, d_I, c*d_I*s_T, -c, beta*d_I + d_I*r, -c*d_I*d_T, -d_I, -1, d_I*s_T, beta, -d_I*d_T]
+

@@ -1,0 +1,2 @@
+[(alpha*beta + beta*lambda)//N, -alpha - lambda, alpha + lambda, -1, (alpha*beta*lambda)//N, beta//N, -N]
+
