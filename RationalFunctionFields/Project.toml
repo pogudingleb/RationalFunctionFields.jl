@@ -14,17 +14,17 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
-AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46, 0.47"
+AbstractAlgebra = "0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48"
 Combinatorics = "1"
 Groebner = "0.10"
-LinearAlgebra = "1.10, 1.11"
+LinearAlgebra = "1.10"
 Nemo = "0.46, 0.47, 0.48, 0.49, 0.50, 0.51, 0.52, 0.53, 0.54"
-ParamPunPam = "0.5.5"
-Random = "1.10, 1.11"
-Test = "1.10, 1.11"
+ParamPunPam = "0.5"
+Random = "1.10"
+Test = "1.10"
 TestSetExtensions = "2, 3"
 TimerOutputs = "0.5.10"
-julia = "1.10, 1.11"
+julia = "1.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
