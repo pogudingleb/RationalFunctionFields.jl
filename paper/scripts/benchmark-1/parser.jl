@@ -2,11 +2,7 @@
 
 import Nemo
 
-function parse_polynomial_from_terms(
-    ring,
-    terms_exploded_str,
-    str_to_var
-)
+function parse_polynomial_from_terms(ring, terms_exploded_str, str_to_var)
     base_field = Nemo.base_ring(ring)
     n = Nemo.nvars(ring)
     coeffs = Vector{Nemo.elem_type(base_field)}(undef, length(terms_exploded_str))
@@ -49,19 +45,16 @@ function parse_poly(ring, poly_str)
     end
     terms_exploded_str = map(t -> map(strip, split(t, "*")), terms_str)
     str_to_var = Dict(string.(symbols(ring)) .=> gens(ring))
-    cfs, exps = parse_polynomial_from_terms(
-        ring,
-        terms_exploded_str,
-        str_to_var
-    )
+    cfs, exps = parse_polynomial_from_terms(ring, terms_exploded_str, str_to_var)
     m = map(f -> exponent_vector(f, 1), exps)
     ring(cfs, m)
 end
 
 begin
-R, (a,b,x1,x2) = Nemo.polynomial_ring(Nemo.QQ, ["a", "b", "x1", "x2"])
-@assert parse_poly(R, "0") == R(0)
-@assert parse_poly(R, "242342342342423142312//3432483843848483848348384834838477") == R(242342342342423142312//3432483843848483848348384834838477)
-@assert parse_poly(R, "  a  -   b     * x1  ") == a - b*x1
-@assert parse_poly(R, "a*b * x1 +x2^3 - 11*x1*x2") == (a*b * x1 +x2^3 - 11*x1*x2)
+    R, (a, b, x1, x2) = Nemo.polynomial_ring(Nemo.QQ, ["a", "b", "x1", "x2"])
+    @assert parse_poly(R, "0") == R(0)
+    @assert parse_poly(R, "242342342342423142312//3432483843848483848348384834838477") ==
+            R(242342342342423142312//3432483843848483848348384834838477)
+    @assert parse_poly(R, "  a  -   b     * x1  ") == a - b*x1
+    @assert parse_poly(R, "a*b * x1 +x2^3 - 11*x1*x2") == (a * b * x1 + x2^3 - 11*x1*x2)
 end

@@ -3,31 +3,47 @@
 using StructuralIdentifiability, RationalFunctionFields, ParamPunPam, Nemo
 
 # 0. Get the defintion of the example  
-include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmarking", "benchmarks.jl"))
+include(
+    joinpath(
+        dirname(dirname(pathof(StructuralIdentifiability))),
+        "benchmarking",
+        "benchmarks.jl",
+    ),
+)
 model = benchmarks[:SEIR34]
 
 # 1. Get the original set of generators
-funcs = StructuralIdentifiability.initial_identifiable_functions(model[:ode], prob_threshold=0.99, with_states=false)[1]
+funcs = StructuralIdentifiability.initial_identifiable_functions(
+    model[:ode],
+    prob_threshold = 0.99,
+    with_states = false,
+)[1]
 println("=======\nSection 4.2\n=======\n")
-println("1. Original generators:\n", RationalFunctionFields.dennums_to_fractions(funcs), "\n")
+println(
+    "1. Original generators:\n",
+    RationalFunctionFields.dennums_to_fractions(funcs),
+    "\n",
+)
 
 # 2. Compute the coefficients of GB up to degree d=2 
 #    (or, (d_num,d_den) = (1,1))
 rff = RationalFunctionField(funcs)
-deg = (1,1)
+deg = (1, 1)
 gb = ParamPunPam.paramgb(rff.oms, up_to_degree = deg)
 cfs = reduce(vcat, map(f -> collect(coefficients(f)), gb))
-cfs_are_enough = fields_equal(RationalFunctionField(cfs), RationalFunctionField(funcs), 0.99)
+cfs_are_enough =
+    fields_equal(RationalFunctionField(cfs), RationalFunctionField(funcs), 0.99)
 println("2. Coefficients up to degree d=$deg:\n", cfs)
 println("2. They generate the original subfield: ", cfs_are_enough)
 
 # 3. Compute the coefficients of GB up to degree d=4
 #    (or, (d_num,d_den) = (2,2))
 rff = RationalFunctionField(funcs)
-deg = (2,2)
+deg = (2, 2)
 gb = ParamPunPam.paramgb(rff.oms, up_to_degree = deg)
 cfs = reduce(vcat, map(f -> collect(coefficients(f)), gb))
-cfs_are_enough = fields_equal(RationalFunctionField(cfs), RationalFunctionField(funcs), 0.99)
+cfs_are_enough =
+    fields_equal(RationalFunctionField(cfs), RationalFunctionField(funcs), 0.99)
 println("\n3. Coefficients up to degree d=$deg:\n", cfs)
 println("3. They generate the original subfield: ", cfs_are_enough)
 

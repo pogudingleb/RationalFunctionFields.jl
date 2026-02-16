@@ -8,14 +8,19 @@ ode = @ODEmodel(
     y(t) = I(t) / N
 )
 
-original_generators = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=false)[1][1]
+original_generators = StructuralIdentifiability.initial_identifiable_functions(
+    ode,
+    prob_threshold = 0.99,
+    with_states = false,
+)[1][1]
 original_generators = [f // original_generators[1] for f in original_generators[2:end]]
 println("Original generators:")
 for f in original_generators
-        println("\t$f")
+    println("\t$f")
 end
 
-simplified_generators = simplified_generating_set(RationalFunctionField(original_generators))
+simplified_generators =
+    simplified_generating_set(RationalFunctionField(original_generators))
 println("Simplified generators:")
 for f in simplified_generators
     println("\t$f")
