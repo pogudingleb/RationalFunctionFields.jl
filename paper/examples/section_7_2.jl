@@ -7,7 +7,7 @@ using RationalFunctionFields
 # the trajectory of discrete-time system
 function generate_observable(output, substitution, num_steps)
     shifts = [output]
-    for i in 2:num_steps
+    for i = 2:num_steps
         println("Number of time points: $i")
         push!(shifts, evaluate(shifts[end], substitution))
         println("Generators:")
@@ -36,7 +36,15 @@ generate_observable(x * mu3 // one(R), substitution, 4)
 ## Example 7.8: "SIS/SIR epidemiological model"
 
 println("=======\nExample 7.7\n=======\n")
-R, (alpha, beta, gamma, eta, S, I) = polynomial_ring(QQ, ["alpha", "beta", "gamma", "eta", "S", "I"])
+R, (alpha, beta, gamma, eta, S, I) =
+    polynomial_ring(QQ, ["alpha", "beta", "gamma", "eta", "S", "I"])
 
-substitution = [alpha, beta, gamma, eta, S * (1 - beta * I) + alpha * I, I * (1 + beta * S - gamma - alpha)]
+substitution = [
+    alpha,
+    beta,
+    gamma,
+    eta,
+    S * (1 - beta * I) + alpha * I,
+    I * (1 + beta * S - gamma - alpha),
+]
 generate_observable(eta * I // one(R), substitution, 5)

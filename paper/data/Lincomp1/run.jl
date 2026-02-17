@@ -10,16 +10,27 @@ name = :Lincomp1
 with_states = false
 
 # 1. Get the definition of `benchmarks`.
-include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmarking", "benchmarks.jl"))
+include(
+    joinpath(
+        dirname(dirname(pathof(StructuralIdentifiability))),
+        "benchmarking",
+        "benchmarks.jl",
+    ),
+)
 ode = benchmarks[name][:ode]
-    
+
 # 2. Some preprocessing. May take time.
-funcs = StructuralIdentifiability.initial_identifiable_functions(ode, prob_threshold=0.99, with_states=with_states)[1]
+funcs = StructuralIdentifiability.initial_identifiable_functions(
+    ode,
+    prob_threshold = 0.99,
+    with_states = with_states,
+)[1]
 
 # 3. Produce the original generating set. Careful when printing, may be huge.
 initial_generating_set = RationalFunctionFields.dennums_to_fractions(funcs);
 
 # 4. Compute a simpler generating set using our algorithm.
-simple_funcs = simplified_generating_set(RationalFunctionFields.RationalFunctionField(funcs))
+simple_funcs =
+    simplified_generating_set(RationalFunctionFields.RationalFunctionField(funcs))
 
 println(simple_funcs)
