@@ -25,7 +25,7 @@ gg := [
   op(convert(V . ((1 - c1) * A + c1 * B), list))
 ];
 
-invar := amf( G, gg, [a01 - 1, b10], z, lambda);
+invar := amf( G, gg, [a01 - 1, a10], z, lambda);
 
 
 with(FileTools[Text]):
