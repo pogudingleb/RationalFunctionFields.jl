@@ -25,8 +25,10 @@ gg := [
   op(convert(V . ((1 - c1) * A + c1 * B), list))
 ];
 
-invar := amf( G, gg, [a01 - 1, a10], z, lambda);
+invar := amf( G, gg, [a11, a02-1], z, lambda);
 
+# another set of cross sections with lower highest degree but higher lowest degree
+#invar := amf( G, gg, [a01 - 1, a10], z, lambda);
 
 with(FileTools[Text]):
 
