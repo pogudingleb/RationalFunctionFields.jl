@@ -1,4 +1,6 @@
-import Pkg; Pkg.activate(joinpath(@__DIR__, "..", "env")); Pkg.instantiate()
+import Pkg;
+Pkg.activate(joinpath(@__DIR__, "..", "env"));
+Pkg.instantiate()
 
 using StructuralIdentifiability, RationalFunctionFields, Nemo
 import Base.Iterators
@@ -9,33 +11,49 @@ function myprettymemory(b)
     if b < 1024
         return string(b, "~bytes")
     elseif b < 1024^2
-        value, units = round(b / 1024.0, digits=1), "KB"
+        value, units = round(b / 1024.0, digits = 1), "KB"
     elseif b < 1024^3
-        value, units = round(b / 1024.0^2, digits=1), "MB"
+        value, units = round(b / 1024.0^2, digits = 1), "MB"
     else
-        value, units = round(b / 1024.0^3, digits=1), "GB"
+        value, units = round(b / 1024.0^3, digits = 1), "GB"
     end
     return string(value, "~", units)
 end
 
 # get `benchmarks`
 if !isdefined(Main, :benchmarks)
-include(joinpath(dirname(dirname(pathof(StructuralIdentifiability))), "benchmarking", "benchmarks.jl"))
+    include(
+        joinpath(
+            dirname(dirname(pathof(StructuralIdentifiability))),
+            "benchmarking",
+            "benchmarks.jl",
+        ),
+    )
 end
 
-skipped = ["NFkB", "Covid2", "Akt", "TumorPillis", "TumorHu", "LeukaemiaLeon2021", "MAPK_5out_bis", "cLV2", "QWWC"]
+skipped = [
+    "NFkB",
+    "Covid2",
+    "Akt",
+    "TumorPillis",
+    "TumorHu",
+    "LeukaemiaLeon2021",
+    "MAPK_5out_bis",
+    "cLV2",
+    "QWWC",
+]
 prefix = "results"
 
 function get_julia_result(name)
     output_filepath = joinpath(@__DIR__, prefix, "simplify", string(name, "_output.txt"))
     result = Dict{Any,Any}(
-        :julia_funcs => nothing, 
+        :julia_funcs => nothing,
         :julia_time => nothing,
         :julia_max_deg => nothing,
         :julia_min_deg => nothing,
         :julia_max_terms => nothing,
-        :julia_min_terms => nothing
-    )    
+        :julia_min_terms => nothing,
+    )
     !isfile(output_filepath) && return result
     open(output_filepath, "r") do io
         last_line = nothing
@@ -44,9 +62,15 @@ function get_julia_result(name)
                 result[:julia_time] = chopprefix(line, ">>>")
             end
             if startswith(line, "simple funcs")
-                result[:julia_funcs] = chopprefix(last_line, "AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}")
+                result[:julia_funcs] = chopprefix(
+                    last_line,
+                    "AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}",
+                )
             end
-            for (str, key) in zip(["max deg = ", "min deg = ", "max terms = ", "min terms = "], [:julia_max_deg, :julia_min_deg, :julia_max_terms, :julia_min_terms])
+            for (str, key) in zip(
+                ["max deg = ", "min deg = ", "max terms = ", "min terms = "],
+                [:julia_max_deg, :julia_min_deg, :julia_max_terms, :julia_min_terms],
+            )
                 if startswith(line, str)
                     result[key] = chopprefix(line, str)
                 end
@@ -59,10 +83,9 @@ function get_julia_result(name)
 end
 
 function get_maple_input_gens(name)
-    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_input.mpl"))
-    result = Dict{Any,Any}(
-        :maple_input_gens => nothing, 
-    )
+    output_filepath =
+        joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_input.mpl"))
+    result = Dict{Any,Any}(:maple_input_gens => nothing)
     !isfile(output_filepath) && return result
     open(output_filepath, "r") do io
         content = read(io, String)
@@ -75,11 +98,9 @@ function get_maple_input_gens(name)
 end
 
 function get_maple_result(name)
-    output_filepath = joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_output.txt"))
-    result = Dict{Any,Any}(
-        :maple_funcs => nothing, 
-        :maple_time => nothing,
-    )
+    output_filepath =
+        joinpath(@__DIR__, prefix, "maple_simplify", string(name, "_output.txt"))
+    result = Dict{Any,Any}(:maple_funcs => nothing, :maple_time => nothing)
     !isfile(output_filepath) && return result
     open(output_filepath, "r") do io
         last_line = nothing
@@ -100,7 +121,8 @@ function get_maple_result(name)
 end
 
 function get_gens_stats(name)
-    output_filepath = joinpath(@__DIR__, prefix, "input_stats", string(name, "_input_stats.txt"))
+    output_filepath =
+        joinpath(@__DIR__, prefix, "input_stats", string(name, "_input_stats.txt"))
     result = Dict{Any,Any}(
         :max_deg => nothing,
         :min_deg => nothing,
@@ -111,18 +133,40 @@ function get_gens_stats(name)
         :bytes_dennums => nothing,
         :min_gen_deg_per_var => nothing,
         :min_deg_per_var => nothing,
-        :vars => nothing
-    )    
+        :vars => nothing,
+    )
     !isfile(output_filepath) && return result
     open(output_filepath, "r") do io
         last_line = ""
         for line in Iterators.reverse(eachline(io))
-            for (str, key) in zip(["max deg(...) = ", "min deg(...) = ", "max terms(...) = ", "min terms(...) = ", "length(...) = ", "min gen deg per var = ", "min deg per var = ", "vars = "], [:max_deg, :min_deg, :max_terms, :min_terms, :elems, :min_gen_deg_per_var, :min_deg_per_var, :vars])
+            for (str, key) in zip(
+                [
+                    "max deg(...) = ",
+                    "min deg(...) = ",
+                    "max terms(...) = ",
+                    "min terms(...) = ",
+                    "length(...) = ",
+                    "min gen deg per var = ",
+                    "min deg per var = ",
+                    "vars = ",
+                ],
+                [
+                    :max_deg,
+                    :min_deg,
+                    :max_terms,
+                    :min_terms,
+                    :elems,
+                    :min_gen_deg_per_var,
+                    :min_deg_per_var,
+                    :vars,
+                ],
+            )
                 if startswith(line, str)
                     result[key] = chopprefix(line, str)
                 end
             end
-            for (str, key) in zip(["format [num/den]", "format [[den, nums]]"], [:bytes, :bytes_dennums])
+            for (str, key) in
+                zip(["format [num/den]", "format [[den, nums]]"], [:bytes, :bytes_dennums])
                 if startswith(line, str)
                     result[key] = chopprefix(last_line, "length(string(...)) = ")
                 end
@@ -135,10 +179,9 @@ function get_gens_stats(name)
 end
 
 function get_independence_result(name)
-    output_filepath = joinpath(@__DIR__, prefix, "independence", string(name, "_output.txt"))
-    result = Dict{Any,Any}(
-        :independent => nothing,
-    )    
+    output_filepath =
+        joinpath(@__DIR__, prefix, "independence", string(name, "_output.txt"))
+    result = Dict{Any,Any}(:independent => nothing)
     !isfile(output_filepath) && return result
     open(output_filepath, "r") do io
         last_line = ""
@@ -168,7 +211,7 @@ function foo_get_maple_input_gens()
         push!(results, result)
     end
 
-    results = sort(results, by=x -> x[:name])
+    results = sort(results, by = x -> x[:name])
     results
 end
 
@@ -186,7 +229,7 @@ function foo_julia_and_maple(filename, columns)
         push!(results, result)
     end
 
-    results = sort(results, by=x -> x[:name])
+    results = sort(results, by = x -> x[:name])
 
     table = Matrix{Any}(undef, length(results), length(columns))
     for (i, result) in enumerate(results)
@@ -195,12 +238,7 @@ function foo_julia_and_maple(filename, columns)
 
     result_path = joinpath(@__DIR__, filename)
     open(result_path, "w") do io
-        pretty_table(
-            io,
-            table, 
-            column_labels = columns,
-            backend = :markdown
-        )
+        pretty_table(io, table, column_labels = columns, backend = :markdown)
         println("Result written to $result_path")
     end
 
@@ -216,12 +254,16 @@ function foo_julia_original_generators(columns)
         end
         common = Dict(:name => name)
         initial_funcs = nothing
-        output_filepath = joinpath(@__DIR__, prefix, "input_stats", string(name, "_initial_funcs.txt"))
+        output_filepath =
+            joinpath(@__DIR__, prefix, "input_stats", string(name, "_initial_funcs.txt"))
         if ispath(output_filepath)
             if filesize(output_filepath) < 2^21 # 2 MB
                 open(output_filepath, "r") do io
                     content = read(io, String)
-                    content = chopprefix(content, "AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}")
+                    content = chopprefix(
+                        content,
+                        "AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}",
+                    )
                     initial_funcs = content
                 end
             end
@@ -230,8 +272,8 @@ function foo_julia_original_generators(columns)
         push!(results, result)
     end
 
-    results = sort(results, by=x -> x[:name])
-    
+    results = sort(results, by = x -> x[:name])
+
     results
 end
 
@@ -248,8 +290,8 @@ function foo_gens_stats(filename, columns)
         push!(results, result)
     end
 
-    results = sort(results, by=x -> x[:name])
-    
+    results = sort(results, by = x -> x[:name])
+
     table = Matrix{Any}(undef, length(results), length(columns))
     for (i, result) in enumerate(results)
         table[i, :] = [result[c] for c in columns]
@@ -257,12 +299,7 @@ function foo_gens_stats(filename, columns)
 
     result_path = joinpath(@__DIR__, filename)
     open(result_path, "w") do io
-        pretty_table(
-            io,
-            table, 
-            column_labels = columns,
-            backend = :markdown
-        )
+        pretty_table(io, table, column_labels = columns, backend = :markdown)
         println("Result written to $result_path")
     end
 
@@ -282,8 +319,8 @@ function foo_independence(filename, columns)
         push!(results, result)
     end
 
-    results = sort(results, by=x -> x[:name])
-    
+    results = sort(results, by = x -> x[:name])
+
     table = Matrix{Any}(undef, length(results), length(columns))
     for (i, result) in enumerate(results)
         table[i, :] = [result[c] for c in columns]
@@ -291,12 +328,7 @@ function foo_independence(filename, columns)
 
     result_path = joinpath(@__DIR__, filename)
     open(result_path, "w") do io
-        pretty_table(
-            io,
-            table, 
-            column_labels = columns,
-            backend = :markdown
-        )
+        pretty_table(io, table, column_labels = columns, backend = :markdown)
         println("Result written to $result_path")
     end
 
@@ -317,7 +349,7 @@ function paginate(words; chars_per_page = 40, sep = ",")
     pages
 end
 
-function nicify(result, f; do_paginate=true)
+function nicify(result, f; do_paginate = true)
     f = string(f)
     f = strip(f)
     f = chopprefix(f, "[")
@@ -327,7 +359,7 @@ function nicify(result, f; do_paginate=true)
     # f = replace(f, "//" => "/")
     f = split(f, ",")
     f = map(strip, f)
-    f = sort(f, by=c -> (length(c), c))
+    f = sort(f, by = c -> (length(c), c))
     f = map(ff -> replace(ff, r"reaction\_([0-9])\_k([0-9])" => s"r_\1_\2"), f)
     f = map(strip, f)
     if do_paginate
@@ -337,7 +369,7 @@ function nicify(result, f; do_paginate=true)
     f = filter(!isempty, f)
     f = map(x -> strip(x, ','), f)
     # println("before latexify: ", f)
-    f = map(x -> join(String.(latexify.(split(x, ", "), mult_symbol="")), ", "), f)
+    f = map(x -> join(String.(latexify.(split(x, ", "), mult_symbol = "")), ", "), f)
     # println("after String(latex()): ", f)
     if do_paginate
         f = join(f, ",\\\\")
@@ -353,16 +385,41 @@ function nicify(result, f; do_paginate=true)
     f = replace(f, r"([a-zA-Z]+)([0-9]+)" => s"\1_{\2}")
     greek = ["mu", "rho", "beta", "gamma", "alpha", "delta", "phi", "tau"]
     for x in vcat(greek, uppercasefirst.(greek))
-        f = replace(f, Regex("([\$ _{}])$(x)([\$ _{}])") => SubstitutionString("\\1\\\\$(lowercase(x))\\2"))
+        f = replace(
+            f,
+            Regex("([\$ _{}])$(x)([\$ _{}])") =>
+                SubstitutionString("\\1\\\\$(lowercase(x))\\2"),
+        )
     end
     f = replace(f, r"_{([0-9])\\_([0-9])}" => s"_{\1\2}")
-    for _ in 1:10 f = replace(f, "  " => " ") end
+    for _ = 1:10
+        f = replace(f, "  " => " ")
+    end
     f = replace(f, ", " => ",")
     f = replace(f, "\$ " => "\$")
     f = replace(f, "\$- " => "\$-")
     f = replace(f, " - " => "-")
     f = replace(f, " + " => "+")
-    if string(result[:name]) in ["Bruno2016", "Covid3", "EAIHRD", "HDNL", "HIV", "HIV2", "Influenza_MB1", "Influenza_MB3", "Influenza_MD1", "Influenza_MD2", "Influenza_MD3", "Influenza_MD4", "SEAIJRC", "SIR19", "SIR21", "SLIQR", "Transfection", "Treatment"]
+    if string(result[:name]) in [
+        "Bruno2016",
+        "Covid3",
+        "EAIHRD",
+        "HDNL",
+        "HIV",
+        "HIV2",
+        "Influenza_MB1",
+        "Influenza_MB3",
+        "Influenza_MD1",
+        "Influenza_MD2",
+        "Influenza_MD3",
+        "Influenza_MD4",
+        "SEAIJRC",
+        "SIR19",
+        "SIR21",
+        "SLIQR",
+        "Transfection",
+        "Treatment",
+    ]
         f = replace(f, " " => "\\mspace{2mu} ")
     end
     f = replace(f, "," => ", ")
@@ -374,7 +431,13 @@ function nicify(result, f; do_paginate=true)
             trms = reduce(vcat, map(e -> split(e, "-"), split(el, "+")))
             maxtrms = 5
             if length(el) > 200 # length(trms) > maxtrms
-                push!(newf, string(join(trms[1:maxtrms], "+"), " + \\text{$(length(trms) - maxtrms) more terms}\$"))
+                push!(
+                    newf,
+                    string(
+                        join(trms[1:maxtrms], "+"),
+                        " + \\text{$(length(trms) - maxtrms) more terms}\$",
+                    ),
+                )
             else
                 push!(newf, el)
             end
@@ -412,7 +475,7 @@ function make_nice_latex_table(filename, columns, results)
 
         f = result[:vars]
         if !isnothing(f)
-            f = nicify(result, f; do_paginate=false)
+            f = nicify(result, f; do_paginate = false)
             result[:vars] = f
         end
     end
@@ -428,9 +491,12 @@ function make_nice_latex_table(filename, columns, results)
 
     result_path = joinpath(@__DIR__, filename)
     open(result_path, "w") do io
-        println(io, """
-        \\begin{enumerate}
-            """)
+        println(
+            io,
+            """
+\\begin{enumerate}
+    """,
+        )
         for result in results
             name = result[:name]
             julia_funcs = result[:julia_funcs]
@@ -439,24 +505,37 @@ function make_nice_latex_table(filename, columns, results)
             elems = get(result, :elems, nothing)
             vars = get(result, :vars, nothing)
             bytes = get(result, :bytes, nothing)
-            if isnothing(bytes) bytes = "0" end
+            if isnothing(bytes)
+                bytes = "0"
+            end
             max_deg = get(result, :max_deg, nothing)
-            if vars == nothing vars = "nothing" end
+            if vars == nothing
+                vars = "nothing"
+            end
             println(io, "\\item \\myexample{$(name)} \\cite{}.\n")
-            println(io, "Original generating set information: $(length(split(vars, ","))) indeterminates; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n")
+            println(
+                io,
+                "Original generating set information: $(length(split(vars, ","))) indeterminates; $elems non-constant functions; maximal total degrees of numerator and denominator are~\$$max_deg\$; $(myprettymemory(parse(Int, bytes))) total in string representation.\n",
+            )
             println(io, "Indeterminates: $vars.\n")
             if input_funcs !== nothing
-            println(io, "Original generating set: \n\n\$$(input_funcs)\$\n")
+                println(io, "Original generating set: \n\n\$$(input_funcs)\$\n")
             else
-            println(io, "Original generating set: too large to be listed.\n")
+                println(io, "Original generating set: too large to be listed.\n")
             end
             println(io, "Result of our algorithm: \n\n\$$(julia_funcs)\$\n")
-            println(io, "Result is algebraically independent over \$\\mathbb{C}\$: $(independent in ["true", nothing] ? "yes" : "no").")
+            println(
+                io,
+                "Result is algebraically independent over \$\\mathbb{C}\$: $(independent in ["true", nothing] ? "yes" : "no").",
+            )
             println(io)
         end
-        println(io, """
-        \\end{enumerate}
-        """)
+        println(
+            io,
+            """
+\\end{enumerate}
+""",
+        )
         println("Result written to $result_path")
     end
 
@@ -478,11 +557,11 @@ function merge_by_name(results_lists...)
 end
 
 function print_huge_data_to_data_1(
-        results; 
-        filename = nothing,
-        column = nothing,
-        size_limit = 2^19   # half a MB
-    )
+    results;
+    filename = nothing,
+    column = nothing,
+    size_limit = 2^19,   # half a MB
+)
     path = joinpath(dirname(@__DIR__), "data-1")
     @assert ispath(path)
     for result in results
@@ -503,52 +582,62 @@ function main()
     if !isempty(ARGS)
         task = ARGS[1]
     end
-    
+
     columns = [:name, :julia_funcs]
-    result_path1, results1 = foo_julia_and_maple(joinpath(prefix,"simple_funcs_julia.md"), columns)
+    result_path1, results1 =
+        foo_julia_and_maple(joinpath(prefix, "simple_funcs_julia.md"), columns)
 
     columns = [:name, :maple_funcs]
-    result_path1_mpl, results1_mpl = foo_julia_and_maple(joinpath(prefix,"simple_funcs_maple.md"), columns)
-    
+    result_path1_mpl, results1_mpl =
+        foo_julia_and_maple(joinpath(prefix, "simple_funcs_maple.md"), columns)
+
     # print_huge_data_to_data_1(results1, column=:julia_funcs, filename="our_output.txt")
-    
+
     # columns = [:name, :original_funcs]
     # results11 = foo_julia_original_generators(columns)
     # print_huge_data_to_data_1(results11, column=:original_funcs, filename="original_generators.txt")
 
     # rat = filter(res -> res[:original_funcs] == nothing || occursin("/", res[:original_funcs]), results11);
     # poly_to_rat = filter(res -> !occursin("/", results1[findfirst(res1 -> res1[:name] == res[:name], results1)][:julia_funcs]), filter(res -> res[:original_funcs] != nothing, rat))
-    
-    columns = [:name, :julia_time, :maple_time]
-    result_path12, table12 = foo_julia_and_maple(joinpath(prefix,"time_julia_and_maple.md"), columns)
-    
-    columns = [
-            :name, :elems, :bytes, :max_deg,
-            # :min_deg,
-            :max_terms,
-            # :min_terms,
-            :vars,
-            :min_deg_per_var,
-            :min_gen_deg_per_var,
-        ]
-    result_path2, results2 = foo_gens_stats(joinpath(prefix,"input_stats.md"), columns)
-    
-    result_path3, results3 = foo_independence(joinpath(prefix,"independence.md"), [:name, :independent])
-    
-    results4 = foo_get_maple_input_gens()
-    
-    results = merge_by_name(results1,results2,results3,results4)
-    result_path5, table11 = make_nice_latex_table(joinpath(prefix,"appendix.tex"), columns, results)
 
-    println("#"^80); println("#"^80)
+    columns = [:name, :julia_time, :maple_time]
+    result_path12, table12 =
+        foo_julia_and_maple(joinpath(prefix, "time_julia_and_maple.md"), columns)
+
+    columns = [
+        :name,
+        :elems,
+        :bytes,
+        :max_deg,
+        # :min_deg,
+        :max_terms,
+        # :min_terms,
+        :vars,
+        :min_deg_per_var,
+        :min_gen_deg_per_var,
+    ]
+    result_path2, results2 = foo_gens_stats(joinpath(prefix, "input_stats.md"), columns)
+
+    result_path3, results3 =
+        foo_independence(joinpath(prefix, "independence.md"), [:name, :independent])
+
+    results4 = foo_get_maple_input_gens()
+
+    results = merge_by_name(results1, results2, results3, results4)
+    result_path5, table11 =
+        make_nice_latex_table(joinpath(prefix, "appendix.tex"), columns, results)
+
+    println("#"^80);
+    println("#"^80)
     println()
-    println("1. Results of simplification written to:\n$(result_path1)\n") 
-    println("2. Results of Maple written to         :\n$(result_path1_mpl)\n") 
+    println("1. Results of simplification written to:\n$(result_path1)\n")
+    println("2. Results of Maple written to         :\n$(result_path1_mpl)\n")
     println("3. Original generating sets written to :\n$(result_path2)\n")
     println("4. Algebraic independence written to   :\n$(result_path3)\n")
     println("5. Appendix in .tex written to         :\n$(result_path5)\n")
     println("Done!")
-    println("#"^80); println("#"^80)
+    println("#"^80);
+    println("#"^80)
 end
 
 

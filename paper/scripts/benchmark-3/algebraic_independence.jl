@@ -1,10 +1,9 @@
 using Nemo, LinearAlgebra
 
-function are_algebraically_independent(ratfuncs; p=0.99)
+function are_algebraically_independent(ratfuncs; p = 0.99)
     base_vars = gens(base_ring(parent(ratfuncs[1])))
     maxdeg = maximum([
-        max(total_degree(numerator(f)), total_degree(denominator(f))) for
-        f in ratfuncs
+        max(total_degree(numerator(f)), total_degree(denominator(f))) for f in ratfuncs
     ])
     # degree of the polynomial whose nonvanishing will be needed for correct result
     D = Int(ceil(2 * maxdeg * (length(ratfuncs) + 1)^3 * length(ratfuncs) / (1 - p)))

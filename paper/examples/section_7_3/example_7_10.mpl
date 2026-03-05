@@ -1,21 +1,40 @@
 read "amf.mpl";
 
-# Code for the example is taken from https://www-sop.inria.fr/members/Evelyne.Hubert/aida/amf/amf.html
+with(LinearAlgebra):
 
-lambda := [seq(lambda||i, i=1..4)];
-z := [seq(z||i, i=1..7)];
+lambda := [lambda1, lambda2, lambda3, lambda4, c1];
+z := [a10, a01, a20, a11, a02, b10, b01, b20, b11, b02];
 
-G := [lambda1 * lambda4-lambda3 * lambda2 - 1];
-
-g := [
-    lambda1 * z1 + lambda2 * z2, 
-    lambda3 * z1 + lambda4 * z2,
-    lambda1 * z3 + lambda2 * z4, 
-    lambda3 * z3 + lambda4 * z4,
-    z7 * lambda2^2 + 2 * z6 * lambda2 * lambda1 + z5 * lambda1^2,
-    z5 * lambda3 * lambda1 + (1 + 2 * lambda3 * lambda2) * z6 + z7 * lambda4 * lambda2,
-    z5 * lambda3^2 + z7 * lambda4^2 + 2 * z6 * lambda4 * lambda3
+G := [
+    lambda1 * lambda4 - 1, c1 * (c1 - 1)
 ];
 
-inv := amf(G, g, [], z, lambda);
-lprint(inv);
+V := Matrix([
+    [lambda1, lambda2, 0,         0,                     0                ],
+    [0,       lambda4, 0,         0,                     0                ],
+    [0,       0,       lambda1^2, 2 * lambda1 * lambda2, lambda2^2        ],
+    [0,       0,       0,         lambda4 * lambda1,     lambda4 * lambda2],
+    [0,       0,       0,         0,                     lambda4^2        ]
+]);
+
+A := Matrix([[a10], [a01], [a20], [a11], [a02]]);
+B := Matrix([[b10], [b01], [b20], [b11], [b02]]);
+
+gg := [
+  op(convert(V . (c1 * A + (1 - c1) * B), list)),
+  op(convert(V . ((1 - c1) * A + c1 * B), list))
+];
+
+invar := amf( G, gg, [a11, a02-1], z, lambda);
+
+# another set of cross sections with lower highest degree but higher lowest degree
+#invar := amf( G, gg, [a01 - 1, a10], z, lambda);
+
+with(FileTools[Text]):
+
+fname := "example_7_10.gens";
+for i from 1 to nops(invar) do
+    WriteString(fname, convert(invar[i], string));
+    WriteString(fname, ",\n");
+end do;
+Close(fname);

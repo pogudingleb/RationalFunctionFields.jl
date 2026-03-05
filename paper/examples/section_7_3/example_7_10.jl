@@ -1,13 +1,60 @@
-using Nemo
 using RationalFunctionFields
-R, (z1, z2, z3, z4, z5, z6, z7) = polynomial_ring(QQ, ["z1", "z2", "z3", "z4", "z5", "z6", "z7"])
+using Nemo
 
-gens = [(z1*z4-z2*z3)^2//(z3^2*z7-2*z3*z4*z6+z4^2*z5), (z3^2*z7-2*z3*z4*z6+z4^2*z5)//(z1*z4-z2*z3), (z1*z3*z7-z1*z4*z6-z2*z3*z6+z2*z4*z5)//(z1*z4-z2*z3), -(z1^2*z7-2*z1*z2*z6+z2^2*z5)//(z1*z4-z2*z3), -(z1^2*z7-2*z1*z2*z6+z2^2*z5)//(z3^2*z7-2*z3*z4*z6+z4^2*z5), -(z1*z3*z7-z1*z4*z6-z2*z3*z6+z2*z4*z5)//(z1*z4-z2*z3), 2*(z1*z3*z7-z1*z4*z6-z2*z3*z6+z2*z4*z5)//(z3^2*z7-2*z3*z4*z6+z4^2*z5), -(z1*z4-z2*z3)*(z1*z3*z7-z1*z4*z6-z2*z3*z6+z2*z4*z5)//(z3^2*z7-2*z3*z4*z6+z4^2*z5), -z5*z7+z6^2, -z1*z4+z2*z3]
+R, (a10, a01, a20, a11, a02, b10, b01, b20, b11, b02) = polynomial_ring(
+    QQ,
+    ["a10", "a01", "a20", "a11", "a02", "b10", "b01", "b20", "b11", "b02"],
+)
 
-rff = RationalFunctionField(gens)
-sg = simplified_generating_set(rff, enforce_minimality = true)
+gens = [
+    (a01-b01)*(a01+b01)//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    (a01^2*a02-b01^2*b02)//(a02-b02)//(a02+b02),
+    (a02*b11-a11*b02)//(a02-b02),
+    (a02^3*a20-a02^2*a11^2-b02^3*b20+b02^2*b11^2)//(a02-b02)//(a02+b02),
+    (
+        a01^2*b11-a01*a10*b02+a02*b01*b10-a11*b01^2
+    )//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    (a01^2*b02*b11-a01*a10*b02^2+a02^2*b01*b10-a02*a11*b01^2)//(a02-b02)//(a02+b02),
+    (
+        a02^3*b20-2*a02^2*a11*b11+a02*a11^2*b02-a02*b02*b11^2+2*a11*b02^2*b11-a20*b02^3
+    )//(a02-b02)//(a02+b02),
+    (
+        a01^2*a02*b11^2-2*a01*a02*a10*b02*b11-a02^2*b02*b10^2+a02*a10^2*b02^2+2*a02*a11*b01*b02*b10-a11^2*b01^2*b02
+    )//(a02-b02)//(a02+b02),
+    (a02^2+b02^2)//a02//b02,
+    (
+        a01*a02^2*b01*b11+a01*a02*b02^2*b10-a01*a11*b01*b02^2-a02^2*a10*b01*b02
+    )//a02//b02//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    (
+        a01*a02^3*b10-a01*a02^2*a11*b01+a01*b01*b02^2*b11-a10*b01*b02^3
+    )//a02//b02//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    -(a01^2*b02-a02*b01^2)//(a02-b02)//(a02+b02),
+    -(a02*b11-a11*b02)//(a02-b02),
+    -(a02^2*b02*b20-a02^2*b11^2-a02*a20*b02^2+a11^2*b02^2)//(a02-b02)//(a02+b02),
+    -(
+        a01^2*a11-a01*a02*a10-b01^2*b11+b01*b02*b10
+    )//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    -(a01^2*a02*b11-a01*a02*a10*b02+a02*b01*b02*b10-a11*b01^2*b02)//(a02-b02)//(a02+b02),
+    -(
+        a01^2*b02*b11^2-2*a01*a10*b02^2*b11-a02^3*b10^2+2*a02^2*a11*b01*b10-a02*a11^2*b01^2+a10^2*b02^3
+    )//(a02-b02)//(a02+b02),
+    -(
+        a01^2*a11*b11-a01*a02*a10*b11-a01*a10*a11*b02+a02*a10^2*b02+a02*b01*b10*b11-a02*b02*b10^2-a11*b01^2*b11+a11*b01*b02*b10
+    )//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    -a02*b02*(a02*a20-a11^2-b02*b20+b11^2)//(a02-b02)//(a02+b02),
+    -(a02-b02)*(a02+b02)*(a02*b10-a11*b01)*(
+        a01*b11-a10*b02
+    )//a02//b02//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+    -a01*b01*(a02-b02)*(
+        a02+b02
+    )//a02//b02//(a01*a02*b10-a01*a11*b01+a01*b01*b11-a10*b01*b02),
+]
 
-println("Simplified generators:")
-for f in sg
-    println(f)
+function td(f)
+    return total_degree(numerator(f // one(R))) + total_degree(denominator(f // one(R)))
 end
+
+println("Number of original generators: $(length(gens)). Total degrees $(map(td, gens))")
+sg = simplified_generating_set(RationalFunctionField(gens))
+println("Number of new generators: $(length(sg)). Total degrees $(map(td, sg))")
+println(sg)
