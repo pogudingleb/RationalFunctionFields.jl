@@ -129,6 +129,6 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     success == success && (!iszero(t) || length(monoms) == length(mi))
     (!success || iszero(t)) && return success, zero(Rx)
     coeffs = solve_transposed_vandermonde(Rz, view(mi, 1:t), view(ys, 1:t))
-    interpolated = Rx(coeffs, convert(Vector{Vector{UInt}}, monoms))
+    interpolated = Rx(coeffs, convert(Vector{Vector{Int}}, monoms))
     success, interpolated
 end
