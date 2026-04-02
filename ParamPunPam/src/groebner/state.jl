@@ -1,4 +1,3 @@
-
 mutable struct GroebnerState{Blackbox, FF, PolyFF, PolyFracQQ, OrderingGb}
     # original polynomials over Q(a)
     blackbox::Blackbox
@@ -16,18 +15,18 @@ mutable struct GroebnerState{Blackbox, FF, PolyFF, PolyFracQQ, OrderingGb}
     gb_ordering::OrderingGb
 
     function GroebnerState(blackbox::Blackbox, ord::Ord) where {Blackbox <: AbstractBlackboxIdeal, Ord}
-        Rx = parent(blackbox)
+        Rx = AbstractAlgebra.parent(blackbox)
         Ra = parent_params(blackbox)
         params = gens(Ra)
         polyvars = gens(Rx)
         K = base_ring(Ra)
-        @debug "Given $(length(blackbox)) functions in $K($(join(repr.(params),", ")))[$(join(repr.(polyvars),", "))]"
-        PolyFF = Nemo.fpMPolyRingElem
+        @debug "Given $(length(blackbox)) functions in $K($(join(repr.(params), ", ")))[$(join(repr.(polyvars), ", "))]"
+        PolyFF = Any
         PolyFracQQ = Any
         FF = Any
         new{Blackbox, FF, PolyFF, PolyFracQQ, typeof(ord)}(
             blackbox,
-            Vector{Vector{Nemo.fpMPolyRingElem}}(),
+            Vector{Vector{PolyFF}}(),
             Vector{Vector{Tuple{Int, Int}}}(),
             Vector{Vector{Tuple{PolyFF, PolyFF}}}(),
             Vector{Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}}(),
@@ -47,55 +46,47 @@ end
 
 function reconstruct_crt!(state, modular)
     field_to_param_exponents = state.field_to_param_exponents
-    char = UInt64(characteristic(modular.finite_field))
+    @assert !isempty(field_to_param_exponents)
+    fields = collect(keys(field_to_param_exponents))
+    moduli = map(field -> BigInt(characteristic(field)), fields)
+    param_exponents = field_to_param_exponents
+    shape = state.shape
+    param_coeffs_crt = Vector{Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}}(undef, length(shape))
     if length(field_to_param_exponents) == 1
-        shape = state.shape
-        param_coeffs_crt = Vector{Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}}(undef, length(shape))
         for i in 1:length(param_coeffs_crt)
             param_coeffs_crt[i] = Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}(undef, length(shape[i]))
             for j in 1:length(param_coeffs_crt[i])
                 P, Q = state.param_exponents[i][j]
-                Pcoeffs = map(c -> BigInt(data(c)), collect(coefficients(P)))
-                Qcoeffs = map(c -> BigInt(data(c)), collect(coefficients(Q)))
+                Pcoeffs = map(lift_modular_elem, collect(coefficients(P)))
+                Qcoeffs = map(lift_modular_elem, collect(coefficients(Q)))
                 param_coeffs_crt[i][j] = (Pcoeffs, Qcoeffs)
             end
         end
         @debug "CRT-Reconstructed coefficients" param_coeffs_crt
         state.param_coeffs_crt = param_coeffs_crt
-        modular.modulo *= char
+        modular.modulo = only(moduli)
         return nothing
     end
-    param_exponents = state.field_to_param_exponents
-    fields = collect(keys(state.field_to_param_exponents))
-    mults = Vector{BigInt}(undef, length(fields))
-    for i in 1:length(mults)
-        mults[i] = BigInt(0)
-    end
-    buf, n1, n2, M, bigch = BigInt(), BigInt(), BigInt(), BigInt(), BigInt()
-    Groebner.crt_precompute!(M, n1, n2, mults, UInt64.(Nemo.characteristic.(fields)))
-    cfs = zeros(UInt64, length(fields))
-    param_coeffs_crt = state.param_coeffs_crt
     for i in 1:length(param_exponents[fields[1]])
+        param_coeffs_crt[i] = Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}(undef, length(shape[i]))
         for j in 1:length(param_exponents[fields[1]][i])
-            @assert length(param_exponents[fields[1]][i]) == length(param_coeffs_crt[i])
+            P0, Q0 = param_exponents[fields[1]][i][j]
+            Pcoeffs = Vector{BigInt}(undef, length(P0))
+            Qcoeffs = Vector{BigInt}(undef, length(Q0))
             for k in 1:length(param_exponents[fields[1]][i][j][1])
-                for ell in 1:length(fields)
-                    cfs[ell] = UInt64(data(coeff(param_exponents[fields[ell]][i][j][1], k)))
-                end
-                Groebner.crt!(M, buf, n1, n2, cfs, mults)
-                Base.GMP.MPZ.set!(param_coeffs_crt[i][j][1][k], buf)
+                residues = map(field -> lift_modular_elem(coeff(param_exponents[field][i][j][1], k)), fields)
+                Pcoeffs[k] = crt_bigint(residues, moduli)
             end
             for k in 1:length(param_exponents[fields[1]][i][j][2])
-                for ell in 1:length(fields)
-                    cfs[ell] = UInt64(data(coeff(param_exponents[fields[ell]][i][j][2], k)))
-                end
-                Groebner.crt!(M, buf, n1, n2, cfs, mults)
-                Base.GMP.MPZ.set!(param_coeffs_crt[i][j][2][k], buf)
+                residues = map(field -> lift_modular_elem(coeff(param_exponents[field][i][j][2], k)), fields)
+                Qcoeffs[k] = crt_bigint(residues, moduli)
             end
+            param_coeffs_crt[i][j] = (Pcoeffs, Qcoeffs)
         end
     end
     @debug "CRT-Reconstructed coefficients" param_coeffs_crt
-    modular.modulo *= char
+    state.param_coeffs_crt = param_coeffs_crt
+    modular.modulo = prod(moduli)
     nothing
 end
 
@@ -119,7 +110,7 @@ function rational_reconstruct_polynomial(ring, poly_ff)
     evs = collect(exponent_vectors(poly_ff))
     success = true
     for i in 1:length(cfs_ff)
-        cz = Nemo.ZZ(data(cfs_ff[i]))
+        cz = Nemo.ZZ(lift_modular_elem(cfs_ff[i]))
         success_, pq = Nemo.reconstruct(cz, modulo_nemo, bnd_nemo, bnd_nemo)
         cfs_rec[i] = pq
         success = success && success_
@@ -130,7 +121,7 @@ end
 
 function reconstruct_rational!(state, modular)
     blackbox = state.blackbox
-    Rorig = parent(blackbox)
+    Rorig = AbstractAlgebra.parent(blackbox)
     Rparam = parent_params(blackbox)
     Rorig_frac, _ =
         polynomial_ring(Nemo.fraction_field(Rparam), symbols(Rorig), internal_ordering=Nemo.internal_ordering(Rorig))
@@ -145,8 +136,6 @@ function reconstruct_rational!(state, modular)
     @debug "Reconstruction" modulo bnd
     for i in 1:length(param_coeffs_crt)
         coeffsrec = Vector{elem_type(Rparam_frac)}(undef, length(state.shape[i]))
-        # skip reconstrction of the first coefficient, it is equal to one in the
-        # reduced basis
         for j in 1:length(param_coeffs_crt[i])
             rec_coeffs = Vector{Rational{BigInt}}(undef, length(param_coeffs_crt[i][j][1]))
             for k in 1:length(param_coeffs_crt[i][j][1])

@@ -74,6 +74,7 @@ end
                 ]
                 test_paramgb(cases, answers, rational_interpolator=interpolator)
                 test_paramgb(cases, answers, up_to_degree=up_to_degree, rational_interpolator=interpolator)
+                test_paramgb(cases, answers, interpolation_prime_bits=256)
 
                 Ra, (a1, a2, a3, a4, a5) =
                     polynomial_ring(Nemo.QQ, ["a1", "a2", "a3", "a4", "a5"], internal_ordering=param_ord)
@@ -231,6 +232,19 @@ end
 
     F = [x1 + a * b^3 // BigInt(2)^100 * x2]
     ParamPunPam.paramgb(F)
+end
+
+@testset "Large interpolation prime switch" begin
+    for interpolator in interpolators_to_test
+        Rparam, (a, b) = polynomial_ring(Nemo.QQ, ["a", "b"])
+        R, (x,) = polynomial_ring(Nemo.fraction_field(Rparam), ["x"], internal_ordering=:degrevlex)
+        f = [x + (a + b + 1)^10]
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=64) == f
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=256) == f
+        f = [x + a^50 + b^50]
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator) == f
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=256) == f
+    end
 end
 
 @testset "Noon" begin

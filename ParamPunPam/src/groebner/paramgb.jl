@@ -23,6 +23,8 @@ Supported keyword arguments:
   Possible options are `:CuytLee` and `:VanDerHoevenLecerf` (default).
 - `estimate_degrees`: If `true`, estimates the total degrees of parameters
   before starting the interpolation. Default is `true`.
+- `interpolation_prime_bits`: Controls the prime size used in sparse
+    interpolation. Supported values are `:auto` (default), `64`, and `256`.
 - `assess_correctness`: If `true`, check that the basis is correct with high
   probability. Default is `true`. **NOTE**:
 
@@ -50,6 +52,7 @@ end
 const _supported_kwargs = Set{Symbol}([
     :up_to_degree,
     :estimate_degrees,
+    :interpolation_prime_bits,
     :rational_interpolator,
     :polynomial_interpolator,
     :assess_correctness,
@@ -74,6 +77,8 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
     up_to_degree = get(kwargs, :up_to_degree, (Inf, Inf))
     @assert all(up_to_degree .> 0) "Total degrees must be greater than 0"
     estimate_degrees = get(kwargs, :estimate_degrees, true)
+    interpolation_prime_bits = get(kwargs, :interpolation_prime_bits, :auto)
+    @assert interpolation_prime_bits in (:auto, 64, 256)
     rational_interpolator = get(kwargs, :rational_interpolator, :VanDerHoevenLecerf)
     @assert rational_interpolator in (:VanDerHoevenLecerf, :CuytLee)
     polynomial_interpolator = get(kwargs, :polynomial_interpolator, :PrimesBenOrTiwari)
@@ -84,7 +89,7 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
     end
     ordering = get(kwargs, :ordering, Groebner.InputOrdering())
     up_to_degree_ = map(d -> isinf(d) ? div(typemax(Int), 2) : d, up_to_degree)
-    ord = AbstractAlgebra.internal_ordering(parent(blackbox))
+    ord = AbstractAlgebra.internal_ordering(AbstractAlgebra.parent(blackbox))
     # If no hint for degrees is given, then try to guess degrees
     if !haskey(kwargs, :up_to_degree)
         if !estimate_degrees
@@ -103,6 +108,7 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
     Ordering, input / target: $ord / $(typeof(ordering))
     Rational interpolator: $rational_interpolator
     Polynomial interpolator: $polynomial_interpolator
+    Interpolation prime bits: $interpolation_prime_bits
     Estimate degrees: $estimate_degrees
     Assess correctness: $assess_correctness"""
     _paramgb(
@@ -110,6 +116,7 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
         ordering,
         up_to_degree_,
         estimate_degrees,
+        interpolation_prime_bits,
         assess_correctness,
         rational_interpolator,
         polynomial_interpolator
@@ -127,7 +134,7 @@ function paramgb_only_degrees(blackbox::T; kwargs...) where {T <: AbstractBlackb
     @assert all(up_to_degree .> 0) "Total degrees must be greater than 0"
     ordering = get(kwargs, :ordering, Groebner.InputOrdering())
     up_to_degree_ = map(d -> isinf(d) ? div(typemax(Int), 2) : d, up_to_degree)
-    ord = AbstractAlgebra.internal_ordering(parent(blackbox))
+    ord = AbstractAlgebra.internal_ordering(AbstractAlgebra.parent(blackbox))
     _paramgb_only_degrees(blackbox, ordering, up_to_degree_)
 end
 
@@ -144,6 +151,7 @@ function _paramgb(
     ordering,
     up_to_degree,
     estimate_degrees,
+    interpolation_prime_bits,
     assess_correctness,
     rational_interpolator,
     polynomial_interpolator
@@ -163,7 +171,7 @@ function _paramgb(
     # This uses exactly 1 prime number
     InterpolatorType = select_interpolator(rational_interpolator, polynomial_interpolator)
     @label InterpolateUsingOnePrime
-    interpolate_exponents!(state, modular, up_to_degree, InterpolatorType)
+    interpolate_exponents!(state, modular, up_to_degree, InterpolatorType, interpolation_prime_bits)
     # Interpolate the rational coefficients of the parametric coefficients. This
     # uses the currently accumulated bases modulo several different primes to
     # recover the coefficients by the means of CRT and Rational number
@@ -250,7 +258,7 @@ function discover_total_degrees!(state, modular, up_to_degree)
     ord = state.gb_ordering
     Ru, _ = polynomial_ring(modular.finite_field, :u)
     K = base_ring(Ru)
-    Rx = parent(blackbox)
+    Rx = AbstractAlgebra.parent(blackbox)
     Ra = base_ring(Rx)
     n = length(gens(Ra))
     shift = distinct_nonzero_points(K, n)
@@ -349,7 +357,7 @@ function discover_total_degrees!(state, modular, up_to_degree)
     for i in 1:length(degrees)
         for j in 1:length(degrees[i])
             dp, dq = degrees[i][j]
-            if !(dp < (up_to_degree[1] + 1) && dq < (up_to_degree[1] + 1))
+            if !(dp < (up_to_degree[1] + 1) && dq < (up_to_degree[2] + 1))
                 degrees[i][j] = (DEGREE_TOO_LARGE, DEGREE_TOO_LARGE)
             end
         end
@@ -364,15 +372,12 @@ end
 # Interpolates the exponents of the parametric coefficients of the Groebner
 # basis. Assumes that the order of the selected finite field is large enough for
 # this.
-function interpolate_exponents!(state, modular, up_to_degree, ::Type{InterpolatorType}) where {InterpolatorType}
+function interpolate_exponents!(state, modular, up_to_degree, ::Type{InterpolatorType}, interpolation_prime_bits) where {InterpolatorType}
     @debug "Interpolating the exponents in parameters.."
     blackbox = state.blackbox
     ord = state.gb_ordering
-    reduce_mod_p!(blackbox, modular.finite_field)
-    Rx = parent(blackbox)
+    Rx = AbstractAlgebra.parent(blackbox)
     Ra = base_ring(Rx)
-    Ru, _ = polynomial_ring(modular.finite_field, symbols(Ra), internal_ordering=Nemo.internal_ordering(Ra))
-    K = base_ring(Ru)
     n = length(gens(Ra))
     shape = state.shape
     gb_context = state.gb_context
@@ -385,6 +390,15 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
     Nd = min(Nd, Nd_estimated)
     Dd = min(Dd, Dd_estimated)
     Nds, Dds = repeat([Nd], n), repeat([Dd], n)
+
+    if maybe_promote_interpolation_prime!(modular, interpolation_prime_bits, max(Nd, Dd), n)
+        @info "Switching to a 256-bit prime for sparse interpolation" interpolation_prime_bits Nd Dd n characteristic=characteristic(modular.finite_field)
+    end
+
+    reduce_mod_p!(blackbox, modular.finite_field)
+    Ru, _ = polynomial_ring(modular.finite_field, symbols(Ra), internal_ordering=Nemo.internal_ordering(Ra))
+    K = base_ring(Ru)
+    use_learn_and_apply = modular.finite_field isa Union{Nemo.fpField, Nemo.FpField}
 
     if !is_interpolation_feasible(max(Nd, Dd), K, n)
         @warn "In the prime number interpolation approach the field order might be too small" Nd Dd n max(Nd, Dd) * log(
@@ -456,7 +470,12 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
             for idx in J:npoints
                 point = x_points[idx]
                 Ip = specialize_mod_p(blackbox, point)
-                flag, basis = groebner_apply!(gb_context, Ip)
+                if use_learn_and_apply
+                    flag, basis = groebner_apply!(gb_context, Ip)
+                    !flag && __throw_unlucky_cancellation()
+                else
+                    flag, basis = true, groebner(Ip, ordering=ord)
+                end
                 update!(
                     prog,
                     idx,
@@ -464,7 +483,6 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
                     showvalues=[(:Points, idx)],
                     valuecolor=_progressbar_value_color
                 )
-                !flag && __throw_unlucky_cancellation()
                 !check_shape(shape, basis) && __throw_unlucky_cancellation()
                 for i in 1:length(shape)
                     for j in 1:length(shape[i])
@@ -506,8 +524,12 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
         # Check that the interpolated result is correct at a random point
         random_point = distinct_nonzero_points(K, n)
         Ip = specialize_mod_p(blackbox, random_point)
-        flag, gb_at_random_point = groebner_apply!(gb_context, Ip)
-        !flag && __throw_unlucky_cancellation()
+        if use_learn_and_apply
+            flag, gb_at_random_point = groebner_apply!(gb_context, Ip)
+            !flag && __throw_unlucky_cancellation()
+        else
+            gb_at_random_point = groebner(Ip, ordering=ord)
+        end
         @debug """
         Checking interpolated coefficients at a random points. 
         Point: $random_point

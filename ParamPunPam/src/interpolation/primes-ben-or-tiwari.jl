@@ -46,13 +46,13 @@ mutable struct PrimesBenOrTiwari{Ring}
     # the number of terms in the interpolant
     T::Int
     # the vector of prime numbers used in substitution
-    ps::Vector{UInt}
+    ps::Vector{BigInt}
     function PrimesBenOrTiwari(ring::Ring, T::Integer, D::Integer) where {Ring}
         @assert T >= 0
         K = base_ring(ring)
         n = nvars(ring)
         @assert (order(K) - 1) > 2T "The number of terms is too large: cannot interpolate"
-        ps = _first_primes[1:n]
+        ps = BigInt.(_first_primes[1:n])
         new{Ring}(ring, T, ps)
     end
 end
@@ -83,7 +83,7 @@ function factor_exponents(mi::Vector{T}, n::Integer, factors::Vector{U}) where {
     exps = Vector{Vector{UInt}}(undef, length(mi))
     i = 1
     while i <= length(mi)
-        flag, factorization = factor_with_known_factors(UInt(data(mi[i])), factors)
+        flag, factorization = factor_with_known_factors(lift_modular_elem(mi[i]), factors)
         if !flag
             break
         end
@@ -129,6 +129,6 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     success == success && (!iszero(t) || length(monoms) == length(mi))
     (!success || iszero(t)) && return success, zero(Rx)
     coeffs = solve_transposed_vandermonde(Rz, view(mi, 1:t), view(ys, 1:t))
-    interpolated = Rx(coeffs, monoms)
+    interpolated = Rx(coeffs, convert(Vector{Vector{UInt}}, monoms))
     success, interpolated
 end
