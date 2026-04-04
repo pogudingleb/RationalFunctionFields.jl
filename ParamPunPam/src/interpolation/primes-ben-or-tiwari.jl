@@ -1,7 +1,7 @@
 # Ben-or and Tiwari via prime numbers
 
 # If n, D are the number of variables and the total degree, respectively, and K
-# is the order of the ground field, then the interpolation succeeds when 
+# is the order of the ground field, then the interpolation succeeds when
 #   p_n^D < K
 # or, somewhat equivalently,
 #   D log n < log K
@@ -46,16 +46,19 @@ mutable struct PrimesBenOrTiwari{Ring}
     # the number of terms in the interpolant
     T::Int
     # the vector of prime numbers used in substitution
-    ps::Vector{UInt}
+    ps::Vector{BigInt}
     function PrimesBenOrTiwari(ring::Ring, T::Integer, D::Integer) where {Ring}
         @assert T >= 0
         K = base_ring(ring)
         n = nvars(ring)
         @assert (order(K) - 1) > 2T "The number of terms is too large: cannot interpolate"
-        ps = _first_primes[1:n]
+        ps = BigInt.(_first_primes[1:n])
         new{Ring}(ring, T, ps)
     end
 end
+
+PrimesBenOrTiwari(ring::Ring, T::Integer, Ds::Vector{<:Integer}) where {Ring} =
+    PrimesBenOrTiwari(ring, T, maximum(Ds))
 
 # Returns a point [2, 3, .., pn]
 function startingpoint(bot::PrimesBenOrTiwari)
@@ -83,7 +86,7 @@ function factor_exponents(mi::Vector{T}, n::Integer, factors::Vector{U}) where {
     exps = Vector{Vector{UInt}}(undef, length(mi))
     i = 1
     while i <= length(mi)
-        flag, factorization = factor_with_known_factors(UInt(data(mi[i])), factors)
+        flag, factorization = factor_with_known_factors(lift_modular_elem(mi[i]), factors)
         if !flag
             break
         end
@@ -110,7 +113,7 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     # find A/B such that A/B = sequence mod z^(2T) and degree(A) < T
     # O(M(T)logT)
     _, B, _ = Padé(sequence, z^(2T), T - 1)
-    # assuming this is O(T logT^k logq^m) for some k and m, 
+    # assuming this is O(T logT^k logq^m) for some k and m,
     # where q is the order of the base field
     mi = Nemo.roots(B)
     any(iszero, mi) && return false, one(Rx)
@@ -126,9 +129,8 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     # t is the true number of terms
     t = min(T, length(monoms))
     success = length(monoms) == length(mi)
-    success == success && (!iszero(t) || length(monoms) == length(mi))
     (!success || iszero(t)) && return success, zero(Rx)
     coeffs = solve_transposed_vandermonde(Rz, view(mi, 1:t), view(ys, 1:t))
-    interpolated = Rx(coeffs, monoms)
+    interpolated = Rx(coeffs, convert(Vector{Vector{Int}}, monoms))
     success, interpolated
 end
