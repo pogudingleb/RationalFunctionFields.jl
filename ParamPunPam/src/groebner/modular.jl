@@ -1,4 +1,6 @@
 
+# Rateher smooth prime (Goldilocks)
+# p - 1 = 2^32 * 3 * 5 * 17 * 257 * 65537
 const _default_modular_prime = big(2)^64 - big(2)^32 + 1
 const _large_interpolation_prime = Primes.nextprime(big(2)^255)
 

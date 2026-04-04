@@ -58,16 +58,10 @@ function reduce_mod_p!(ideal::BasicBlackboxIdeal, finite_field)
     @debug "Reducing modulo $(finite_field).."
     prime = BigInt(characteristic(finite_field))
     if finite_field isa Nemo.fpField
-        if ideal.small_prime == prime
-            return nothing
-        end
         ideal.polys_mod_small_p = map(poly -> map_coefficients(f -> map_coefficients(c -> finite_field(c), f), poly), ideal.polys)
         ideal.small_prime = prime
     else
         @assert finite_field isa Nemo.FqField
-        if ideal.large_prime == prime
-            return nothing
-        end
         ideal.polys_mod_large_p = map(poly -> map_coefficients(f -> map_coefficients(c -> finite_field(c), f), poly), ideal.polys)
         ideal.large_prime = prime
     end
