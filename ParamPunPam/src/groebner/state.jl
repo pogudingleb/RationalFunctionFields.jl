@@ -1,3 +1,4 @@
+
 mutable struct GroebnerState{Blackbox, FF, PolyFF, PolyFracQQ, OrderingGb}
     # original polynomials over Q(a)
     blackbox::Blackbox
@@ -15,12 +16,12 @@ mutable struct GroebnerState{Blackbox, FF, PolyFF, PolyFracQQ, OrderingGb}
     gb_ordering::OrderingGb
 
     function GroebnerState(blackbox::Blackbox, ord::Ord) where {Blackbox <: AbstractBlackboxIdeal, Ord}
-        Rx = AbstractAlgebra.parent(blackbox)
+        Rx = parent(blackbox)
         Ra = parent_params(blackbox)
         params = gens(Ra)
         polyvars = gens(Rx)
         K = base_ring(Ra)
-        @debug "Given $(length(blackbox)) functions in $K($(join(repr.(params), ", ")))[$(join(repr.(polyvars), ", "))]"
+        @debug "Given $(length(blackbox)) functions in $K($(join(repr.(params),", ")))[$(join(repr.(polyvars),", "))]"
         PolyFF = Any
         PolyFracQQ = Any
         FF = Any
@@ -121,7 +122,7 @@ end
 
 function reconstruct_rational!(state, modular)
     blackbox = state.blackbox
-    Rorig = AbstractAlgebra.parent(blackbox)
+    Rorig = parent(blackbox)
     Rparam = parent_params(blackbox)
     Rorig_frac, _ =
         polynomial_ring(Nemo.fraction_field(Rparam), symbols(Rorig), internal_ordering=Nemo.internal_ordering(Rorig))

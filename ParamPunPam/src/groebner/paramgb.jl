@@ -93,7 +93,7 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
     end
     ordering = get(kwargs, :ordering, Groebner.InputOrdering())
     up_to_degree_ = map(d -> isinf(d) ? div(typemax(Int), 2) : d, up_to_degree)
-    ord = AbstractAlgebra.internal_ordering(AbstractAlgebra.parent(blackbox))
+    ord = AbstractAlgebra.internal_ordering(parent(blackbox))
     # If no hint for degrees is given, then try to guess degrees
     if !haskey(kwargs, :up_to_degree)
         if !estimate_degrees
@@ -138,7 +138,7 @@ function paramgb_only_degrees(blackbox::T; kwargs...) where {T <: AbstractBlackb
     @assert all(up_to_degree .> 0) "Total degrees must be greater than 0"
     ordering = get(kwargs, :ordering, Groebner.InputOrdering())
     up_to_degree_ = map(d -> isinf(d) ? div(typemax(Int), 2) : d, up_to_degree)
-    ord = AbstractAlgebra.internal_ordering(AbstractAlgebra.parent(blackbox))
+    ord = AbstractAlgebra.internal_ordering(parent(blackbox))
     _paramgb_only_degrees(blackbox, ordering, up_to_degree_)
 end
 
@@ -273,7 +273,7 @@ function discover_total_degrees!(state, modular, up_to_degree)
     ord = state.gb_ordering
     Ru, _ = polynomial_ring(modular.finite_field, :u)
     K = base_ring(Ru)
-    Rx = AbstractAlgebra.parent(blackbox)
+    Rx = parent(blackbox)
     Ra = base_ring(Rx)
     n = length(gens(Ra))
     shift = distinct_nonzero_points(K, n)
@@ -391,7 +391,7 @@ function interpolate_exponents!(state, modular, up_to_degree, rational_interpola
     @debug "Interpolating the exponents in parameters.."
     blackbox = state.blackbox
     ord = state.gb_ordering
-    Rx = AbstractAlgebra.parent(blackbox)
+    Rx = parent(blackbox)
     Ra = base_ring(Rx)
     n = length(gens(Ra))
     shape = state.shape
