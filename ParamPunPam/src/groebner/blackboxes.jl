@@ -19,9 +19,12 @@ Subtypes of `AbstractBlackboxIdeal` must implement the following functions:
 """
 abstract type AbstractBlackboxIdeal end
 
-mutable struct BasicBlackboxIdeal{PolyQQX} <: AbstractBlackboxIdeal
+mutable struct BasicBlackboxIdeal{PolyQQX,PolyFpSmall,PolyFpLarge} <: AbstractBlackboxIdeal
     polys::Vector{PolyQQX}
-    polys_mod_p::Any
+    small_prime::BigInt
+    polys_mod_small_p::Vector{PolyFpSmall}
+    large_prime::BigInt
+    polys_mod_large_p::Vector{PolyFpLarge}
 
     function BasicBlackboxIdeal(polys::Vector{T}) where {T}
         @assert !isempty(polys)
@@ -36,7 +39,13 @@ mutable struct BasicBlackboxIdeal{PolyQQX} <: AbstractBlackboxIdeal
         end
         K = base_ring(Ra)
         @assert K isa Nemo.FracField{Nemo.ZZRingElem} "Only Nemo.QQ as a ground field is supported"
-        new{eltype(polys)}(polys, nothing)
+        new{eltype(polys), AbstractAlgebra.Generic.MPoly{Nemo.fpMPolyRingElem}, AbstractAlgebra.Generic.MPoly{Nemo.FqMPolyRingElem}}(
+            polys,
+            BigInt(0),
+            Vector{AbstractAlgebra.Generic.MPoly{Nemo.fpMPolyRingElem}}(),
+            BigInt(0),
+            Vector{AbstractAlgebra.Generic.MPoly{Nemo.FqMPolyRingElem}}()
+        )
     end
 end
 
@@ -47,18 +56,43 @@ Base.length(ideal::BasicBlackboxIdeal) = length(ideal.polys)
 
 function reduce_mod_p!(ideal::BasicBlackboxIdeal, finite_field)
     @debug "Reducing modulo $(finite_field).."
-    ideal.polys_mod_p = map(poly -> map_coefficients(f -> map_coefficients(c -> finite_field(c), f), poly), ideal.polys)
+    prime = BigInt(characteristic(finite_field))
+    if finite_field isa Nemo.fpField
+        if ideal.small_prime == prime
+            return nothing
+        end
+        ideal.polys_mod_small_p = map(poly -> map_coefficients(f -> map_coefficients(c -> finite_field(c), f), poly), ideal.polys)
+        ideal.small_prime = prime
+    else
+        @assert finite_field isa Nemo.FqField
+        if ideal.large_prime == prime
+            return nothing
+        end
+        ideal.polys_mod_large_p = map(poly -> map_coefficients(f -> map_coefficients(c -> finite_field(c), f), poly), ideal.polys)
+        ideal.large_prime = prime
+    end
     nothing
 end
 
-function specialize_mod_p(ideal::BasicBlackboxIdeal, point)
-    polys_mod_p = ideal.polys_mod_p
+function _specialize_mod_p(polys_mod_p, point)
     for poly in polys_mod_p
         if iszero(evaluate(leading_coefficient(poly), point))
             __throw_unlucky_cancellation()
         end
     end
     map(f -> map_coefficients(c -> evaluate(c, point), f), polys_mod_p)
+end
+
+function specialize_mod_p(ideal::BasicBlackboxIdeal, point::Vector{<:Nemo.fpFieldElem})
+    finite_field = parent(first(point))
+    @assert ideal.small_prime == characteristic(finite_field)
+    _specialize_mod_p(ideal.polys_mod_small_p, point)
+end
+
+function specialize_mod_p(ideal::BasicBlackboxIdeal, point::Vector{<:Nemo.FqFieldElem})
+    finite_field = parent(first(point))
+    @assert ideal.large_prime == characteristic(finite_field)
+    _specialize_mod_p(ideal.polys_mod_large_p, point)
 end
 
 function liftcoeffs(polys, newring)

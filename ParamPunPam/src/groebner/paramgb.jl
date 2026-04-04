@@ -21,6 +21,9 @@ Supported keyword arguments:
   coefficient in the basis is set to `1`.
 - `rational_interpolator`: Rational function interpolation algorithm.
   Possible options are `:CuytLee` and `:VanDerHoevenLecerf` (default).
+- `polynomial_interpolator`: Sparse multivariate polynomial interpolation
+    algorithm used inside the rational interpolator. Possible options are
+    `:PrimesBenOrTiwari` (default) and `:KronBenOrTiwari`.
 - `estimate_degrees`: If `true`, estimates the total degrees of parameters
   before starting the interpolation. Default is `true`.
 - `interpolation_prime_bits`: Controls the prime size used in sparse
@@ -82,6 +85,7 @@ function paramgb(blackbox::T; kwargs...) where {T <: AbstractBlackboxIdeal}
     rational_interpolator = get(kwargs, :rational_interpolator, :VanDerHoevenLecerf)
     @assert rational_interpolator in (:VanDerHoevenLecerf, :CuytLee)
     polynomial_interpolator = get(kwargs, :polynomial_interpolator, :PrimesBenOrTiwari)
+    @assert polynomial_interpolator in (:PrimesBenOrTiwari, :KronBenOrTiwari)
     assess_correctness = get(kwargs, :assess_correctness, true)
     if assess_correctness && up_to_degree != (Inf, Inf)
         @debug "Turning off `assess_correctness` because `up_to_degree` was provided."
@@ -169,9 +173,15 @@ function _paramgb(
     end
     # Interpolate the exponents in the parametric coefficients.
     # This uses exactly 1 prime number
-    InterpolatorType = select_interpolator(rational_interpolator, polynomial_interpolator)
     @label InterpolateUsingOnePrime
-    interpolate_exponents!(state, modular, up_to_degree, InterpolatorType, interpolation_prime_bits)
+    interpolate_exponents!(
+        state,
+        modular,
+        up_to_degree,
+        rational_interpolator,
+        polynomial_interpolator,
+        interpolation_prime_bits
+    )
     # Interpolate the rational coefficients of the parametric coefficients. This
     # uses the currently accumulated bases modulo several different primes to
     # recover the coefficients by the means of CRT and Rational number
@@ -186,15 +196,20 @@ function _paramgb(
     basis
 end
 
-function select_interpolator(rational_interpolator, polynomial_interpolator)
-    # Currently, we always use PrimesBenOrTiwari for interpolating multivariate
-    # polynomials
+function polynomial_interpolation_degrees(rational_interpolator, Nd, Dd, Nds, Dds)
     if rational_interpolator === :VanDerHoevenLecerf
-        VanDerHoevenLecerf
-    else
-        @assert rational_interpolator === :CuytLee
-        CuytLee
+        return map(d -> Int(d), map(maximum, zip(vcat([Nd], Nds), vcat([Dd], Dds))))
     end
+    @assert rational_interpolator === :CuytLee
+    map(d -> Int(d), map(maximum, zip(Nds, Dds)))
+end
+
+function construct_interpolator(rational_interpolator, polynomial_interpolator, args...)
+    if rational_interpolator === :VanDerHoevenLecerf
+        return VanDerHoevenLecerf(args..., polynomial_interpolator)
+    end
+    @assert rational_interpolator === :CuytLee
+    CuytLee(args..., polynomial_interpolator)
 end
 
 # Discovers the shape of the groebner basis of the ideal from `state` by
@@ -372,7 +387,7 @@ end
 # Interpolates the exponents of the parametric coefficients of the Groebner
 # basis. Assumes that the order of the selected finite field is large enough for
 # this.
-function interpolate_exponents!(state, modular, up_to_degree, ::Type{InterpolatorType}, interpolation_prime_bits) where {InterpolatorType}
+function interpolate_exponents!(state, modular, up_to_degree, rational_interpolator, polynomial_interpolator, interpolation_prime_bits)
     @debug "Interpolating the exponents in parameters.."
     blackbox = state.blackbox
     ord = state.gb_ordering
@@ -390,21 +405,20 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
     Nd = min(Nd, Nd_estimated)
     Dd = min(Dd, Dd_estimated)
     Nds, Dds = repeat([Nd], n), repeat([Dd], n)
+    interpolation_degrees = polynomial_interpolation_degrees(rational_interpolator, Nd, Dd, Nds, Dds)
 
-    if maybe_promote_interpolation_prime!(modular, interpolation_prime_bits, max(Nd, Dd), n)
-        @info "Switching to a 256-bit prime for sparse interpolation" interpolation_prime_bits Nd Dd n characteristic=characteristic(modular.finite_field)
+    if maybe_promote_interpolation_prime!(modular, interpolation_prime_bits, polynomial_interpolator, interpolation_degrees)
+        @info "Switching to a larger prime for sparse interpolation" interpolation_prime_bits Nd Dd n characteristic=characteristic(modular.finite_field)
     end
 
     reduce_mod_p!(blackbox, modular.finite_field)
     Ru, _ = polynomial_ring(modular.finite_field, symbols(Ra), internal_ordering=Nemo.internal_ordering(Ra))
     K = base_ring(Ru)
-    use_learn_and_apply = modular.finite_field isa Union{Nemo.fpField, Nemo.FpField}
-
-    if !is_interpolation_feasible(max(Nd, Dd), K, n)
-        @warn "In the prime number interpolation approach the field order might be too small" Nd Dd n max(Nd, Dd) * log(
-            _first_primes[n]
-        ) log(BigInt(order(K)))
+    PolynomialInterpolator = requested_polynomial_interpolator(polynomial_interpolator)
+    if !is_polynomial_interpolation_feasible(PolynomialInterpolator, K, interpolation_degrees)
+        @warn "The selected sparse interpolation algorithm might require a larger field" interpolator=PolynomialInterpolator characteristic=characteristic(K) interpolation_degrees
     end
+    use_learn_and_apply = modular.finite_field isa Union{Nemo.fpField, Nemo.FpField}
 
     # The current number of terms
     Nt, Dt = 1, 1
@@ -429,7 +443,7 @@ function interpolate_exponents!(state, modular, up_to_degree, ::Type{Interpolato
         end
     end
 
-    interpolator = InterpolatorType(Ru, Nd, Dd, Nds, Dds, Nt, Dt)
+    interpolator = construct_interpolator(rational_interpolator, PolynomialInterpolator, Ru, Nd, Dd, Nds, Dds, Nt, Dt)
 
     J = 1
     @debug """

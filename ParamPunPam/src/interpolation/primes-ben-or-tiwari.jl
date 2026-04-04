@@ -1,7 +1,7 @@
 # Ben-or and Tiwari via prime numbers
 
 # If n, D are the number of variables and the total degree, respectively, and K
-# is the order of the ground field, then the interpolation succeeds when 
+# is the order of the ground field, then the interpolation succeeds when
 #   p_n^D < K
 # or, somewhat equivalently,
 #   D log n < log K
@@ -57,6 +57,9 @@ mutable struct PrimesBenOrTiwari{Ring}
     end
 end
 
+PrimesBenOrTiwari(ring::Ring, T::Integer, Ds::Vector{<:Integer}) where {Ring} =
+    PrimesBenOrTiwari(ring, T, maximum(Ds))
+
 # Returns a point [2, 3, .., pn]
 function startingpoint(bot::PrimesBenOrTiwari)
     K = base_ring(bot.ring)
@@ -110,7 +113,7 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     # find A/B such that A/B = sequence mod z^(2T) and degree(A) < T
     # O(M(T)logT)
     _, B, _ = Padé(sequence, z^(2T), T - 1)
-    # assuming this is O(T logT^k logq^m) for some k and m, 
+    # assuming this is O(T logT^k logq^m) for some k and m,
     # where q is the order of the base field
     mi = Nemo.roots(B)
     any(iszero, mi) && return false, one(Rx)
@@ -126,7 +129,6 @@ function interpolate!(bot::PrimesBenOrTiwari, xs, ys)
     # t is the true number of terms
     t = min(T, length(monoms))
     success = length(monoms) == length(mi)
-    success == success && (!iszero(t) || length(monoms) == length(mi))
     (!success || iszero(t)) && return success, zero(Rx)
     coeffs = solve_transposed_vandermonde(Rz, view(mi, 1:t), view(ys, 1:t))
     interpolated = Rx(coeffs, convert(Vector{Vector{Int}}, monoms))

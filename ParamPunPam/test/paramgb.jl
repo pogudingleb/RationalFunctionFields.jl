@@ -240,9 +240,12 @@ end
         R, (x,) = polynomial_ring(Nemo.fraction_field(Rparam), ["x"], internal_ordering=:degrevlex)
         f = [x + (a + b + 1)^10]
         @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=64) == f
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator) == f
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, polynomial_interpolator=:KronBenOrTiwari) == f
         @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=256) == f
         f = [x + a^50 + b^50]
         @test ParamPunPam.paramgb(f, rational_interpolator=interpolator) == f
+        @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, polynomial_interpolator=:KronBenOrTiwari) == f
         @test ParamPunPam.paramgb(f, rational_interpolator=interpolator, interpolation_prime_bits=256) == f
     end
 end
