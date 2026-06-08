@@ -1,4 +1,5 @@
 using Nemo
+using Primes
 
 @testset "Blackbox" begin
     Ra, (a,) = polynomial_ring(Nemo.QQ, ["a"], internal_ordering=:degrevlex)
@@ -13,4 +14,7 @@ using Nemo
     ParamPunPam.reduce_mod_p!(bb, K)
     point = map(K, [1])
     # @test ParamPunPam.specialize_mod_p(bb, point) == [2x + y, 2x + 1]
+
+    Klarge = Nemo.GF(Primes.nextprime(big(2)^100))
+    ParamPunPam.reduce_mod_p!(bb, Klarge)
 end

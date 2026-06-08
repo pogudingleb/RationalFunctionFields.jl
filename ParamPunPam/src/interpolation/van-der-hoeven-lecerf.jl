@@ -2,7 +2,7 @@
 
 # Needs to know the total degrees, partial degrees, and the number of terms
 # of numerator and denominator of the interpolant.
-mutable struct VanDerHoevenLecerf{Ring, UnivRing, FiniteFieldElem}
+mutable struct VanDerHoevenLecerf{Ring, UnivRing, FiniteFieldElem, PolyInterpolator}
     # multivariate polynomial ring
     ring::Ring
     # the total degrees of the numerator/denominator
@@ -17,8 +17,10 @@ mutable struct VanDerHoevenLecerf{Ring, UnivRing, FiniteFieldElem}
     # dense interpolator for univariate functions
     cauchy::CauchyInterpolator{UnivRing}
     # polynomial interpolators for the numerator/denominator
-    Ni::PrimesBenOrTiwari{Ring}
-    Di::PrimesBenOrTiwari{Ring}
+    Ni::PolyInterpolator
+    Di::PolyInterpolator
+    NDds::Vector{Int}
+    polynomial_interpolator::Type
 
     T::Int
     shift::Vector{FiniteFieldElem}
@@ -38,7 +40,8 @@ mutable struct VanDerHoevenLecerf{Ring, UnivRing, FiniteFieldElem}
         Nds::Vector{<:Integer},
         Dds::Vector{<:Integer},
         Nt::Int,
-        Dt::Int
+        Dt::Int,
+        polynomial_interpolator::Type=PrimesBenOrTiwari
     ) where {Ring}
         @assert Nd >= 0 && Dd >= 0
         @assert Nt >= 0 && Dt >= 0
@@ -49,30 +52,32 @@ mutable struct VanDerHoevenLecerf{Ring, UnivRing, FiniteFieldElem}
         Runiv, _ = Nemo.polynomial_ring(K, "u")
         cauchy = CauchyInterpolator(Runiv, Nd, Dd)
         ringhom = homogenize(ring)
-        Nds = vcat(Nd, Nds)
-        Dds = vcat(Dd, Dds)
+        Nds_hom = vcat(Int(Nd), Int.(Nds))
+        Dds_hom = vcat(Int(Dd), Int.(Dds))
         # (!) we take the maximum for each of the partial degrees,
         # in order to be able use the same points for numerator/denominator
-        NDds = map(maximum, zip(Nds, Dds))
-        Ni = PrimesBenOrTiwari(ringhom, Nt, Nd)
-        Di = PrimesBenOrTiwari(ringhom, Dt, Dd)
+        NDds = map(d -> Int(d), map(maximum, zip(Nds_hom, Dds_hom)))
+        Ni = polynomial_interpolator(ringhom, Nt, NDds)
+        Di = polynomial_interpolator(ringhom, Dt, NDds)
         shift = random_point(ringhom)
         dilation = random_point(ringhom)
         ω = startingpoint(Ni)
 
         T = max(Nt, Dt)
 
-        new{Ring, typeof(Runiv), elem_type(K)}(
+        new{Ring, typeof(Runiv), elem_type(K), typeof(Ni)}(
             ring,
             Nd,
             Dd,
-            Nds,
-            Dds,
+            Nds_hom,
+            Dds_hom,
             Nt,
             Dt,
             cauchy,
             Ni,
             Di,
+            NDds,
+            polynomial_interpolator,
             T,
             shift,
             dilation,
@@ -95,8 +100,9 @@ function get_evaluation_points!(vdhl::VanDerHoevenLecerf)
         vdhl.Dt *= 2
         vdhl.T = max(vdhl.Nt, vdhl.Dt)
         ringhom = vdhl.Ni.ring
-        vdhl.Ni = PrimesBenOrTiwari(ringhom, vdhl.Nt, vdhl.Nd)
-        vdhl.Di = PrimesBenOrTiwari(ringhom, vdhl.Dt, vdhl.Dd)
+        polynomial_interpolator = vdhl.polynomial_interpolator
+        vdhl.Ni = polynomial_interpolator(ringhom, vdhl.Nt, vdhl.NDds)
+        vdhl.Di = polynomial_interpolator(ringhom, vdhl.Dt, vdhl.NDds)
         resize!(vdhl.ξij_T, 2vdhl.T)
         resize!(vdhl.ωξij0_T, 2vdhl.T)
         resize!(vdhl.points, 2vdhl.T * (vdhl.Nd + vdhl.Dd + 2))
@@ -127,7 +133,7 @@ function get_evaluation_points!(vdhl::VanDerHoevenLecerf)
     ωξij = Vector{Vector{elem_type(K)}}(undef, totaldeg)
     ωξij0 = Vector{elem_type(K)}(undef, totaldeg)
 
-    # This cycle below is 
+    # This cycle below is
     # T*((D + 2)*4n*log(q) + D*L + 2*D*log(q) + M(D)log(D)),
     # which is T*M(D)log(D) + O(T*n*D*log(q)) + T*D*L
     @inbounds for i in J:(2T - 1)
@@ -138,7 +144,7 @@ function get_evaluation_points!(vdhl::VanDerHoevenLecerf)
             ξij[1] = random_point(K)
         end
         # The cycle below is (D + 2)*4n*log(q)
-        for j in 1:(totaldeg)
+        for j in 1:totaldeg
             !isassigned(ωξij, j) && (ωξij[j] = [zero(K) for _ in 1:(length(ω) - 1)])
             for nj in 2:length(ω)
                 ωξij[j][nj - 1] = ωi[nj]
