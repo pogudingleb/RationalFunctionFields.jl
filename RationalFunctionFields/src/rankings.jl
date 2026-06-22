@@ -54,6 +54,8 @@ Provides keyword argument `by`, a sorting order. Possible options are:
 """
 function rational_function_cmp(f, g; by = :naive)
     if by === :naive
+        iszero(f) && iszero(g) && return false
+        iszero(f) || iszero(g) && return iszero(f) 
         flag = compare_rational_func_by(f, g, total_degree, :additive)
         flag == 1 && return false
         flag == -1 && return true
