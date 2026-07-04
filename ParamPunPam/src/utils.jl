@@ -23,3 +23,20 @@ function evaluate_frac(f, x)
     isone(d) && return evaluate(n, x)
     evaluate(n, x) // evaluate(d, x)
 end
+
+lift_modular_elem(c) = BigInt(lift(Nemo.ZZ, c))
+
+function crt_bigint(remainders::Vector{BigInt}, moduli::Vector{BigInt})
+    @assert !isempty(remainders)
+    @assert length(remainders) == length(moduli)
+    x = mod(remainders[1], moduli[1])
+    modulus = moduli[1]
+    for i in 2:length(remainders)
+        mi = moduli[i]
+        delta = mod(remainders[i] - mod(x, mi), mi)
+        step = mod(delta * invmod(mod(modulus, mi), mi), mi)
+        x += modulus * step
+        modulus *= mi
+    end
+    mod(x, modulus)
+end

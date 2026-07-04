@@ -235,8 +235,8 @@ end
 # TODO: check that the reduction is lucky.
 function ParamPunPam.reduce_mod_p!(
     oms::IdealOMS,
-    ff::Field,
-) where {Field<:Union{Nemo.fpField,Nemo.FpField}}
+    ff,
+)
     @debug "Reducing OMS ideal modulo $(ff)"
     # If there is a reduction modulo this field already,
     if haskey(oms.cached_nums_gf, ff)
@@ -300,7 +300,7 @@ end
 function ParamPunPam.specialize_mod_p(
     oms::IdealOMS,
     point::Vector{T},
-) where {T<:Union{fpFieldElem,FpFieldElem}}
+) where {T<:RingElem}
     K_1 = parent(first(point))
     #@debug "Evaluating OMS ideal over $K_1 at $point"
     @assert haskey(oms.cached_nums_gf, K_1)

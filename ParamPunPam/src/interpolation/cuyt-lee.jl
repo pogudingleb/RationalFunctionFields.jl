@@ -1,6 +1,6 @@
 # Cuyt-Lee multivariate rational function interpolation.
 
-mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
+mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem, PolyInterpolator}
     ring::Ring
     # the total degrees of the numerator/denominator
     Nd::Int
@@ -11,8 +11,10 @@ mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
     # dense interpolator for univariate functions
     cauchy::CauchyInterpolator{UnivRing}
     # polynomial interpolators for the numerator/denominator
-    Ni::PrimesBenOrTiwari{Ring}
-    Di::PrimesBenOrTiwari{Ring}
+    Ni::PolyInterpolator
+    Di::PolyInterpolator
+    interpolation_degrees::Vector{Int}
+    polynomial_interpolator::Type
 
     T::Int
     shift::Vector{FiniteFieldElem}
@@ -31,7 +33,8 @@ mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
         Nds::Vector{<:Integer},
         Dds::Vector{<:Integer},
         Nt::Int,
-        Dt::Int
+        Dt::Int,
+        polynomial_interpolator::Type=PrimesBenOrTiwari
     ) where {Ring}
         @assert Nd >= 0 && Dd >= 0
         @assert Nt >= 0 && Dt >= 0
@@ -41,8 +44,9 @@ mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
         K = base_ring(ring)
         Runiv, _ = Nemo.polynomial_ring(K, "u")
         cauchy = CauchyInterpolator(Runiv, Nd, Dd)
-        Ni = PrimesBenOrTiwari(ring, Nt, Nd)
-        Di = PrimesBenOrTiwari(ring, Dt, Dd)
+        NDds = map(d -> Int(d), map(maximum, zip(Nds, Dds)))
+        Ni = polynomial_interpolator(ring, Nt, NDds)
+        Di = polynomial_interpolator(ring, Dt, NDds)
 
         shift = random_point(ring)
         dilation = random_point(ring)
@@ -53,7 +57,7 @@ mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
 
         T = max(Nt, Dt)
 
-        new{Ring, typeof(Runiv), elem_type(K)}(
+        new{Ring, typeof(Runiv), elem_type(K), typeof(Ni)}(
             ring,
             Nd,
             Dd,
@@ -62,6 +66,8 @@ mutable struct CuytLee{Ring, UnivRing, FiniteFieldElem}
             cauchy,
             Ni,
             Di,
+            NDds,
+            polynomial_interpolator,
             T,
             shift,
             dilation,
@@ -83,8 +89,9 @@ function get_evaluation_points!(cl::CuytLee)
         cl.Dt *= 2
         cl.T = max(cl.Nt, cl.Dt)
         ringhom = cl.Ni.ring
-        cl.Ni = PrimesBenOrTiwari(ringhom, cl.Nt, cl.Nd)
-        cl.Di = PrimesBenOrTiwari(ringhom, cl.Dt, cl.Dd)
+        polynomial_interpolator = cl.polynomial_interpolator
+        cl.Ni = polynomial_interpolator(ringhom, cl.Nt, cl.interpolation_degrees)
+        cl.Di = polynomial_interpolator(ringhom, cl.Dt, cl.interpolation_degrees)
         resize!(cl.ξij_T, 2cl.T)
         resize!(cl.points, 2cl.T * (cl.Nd + cl.Dd + 2))
     end
@@ -160,6 +167,7 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
     Nt, Dt = cl.Nt, cl.Dt
     Ni, Di = cl.Ni, cl.Di
     cauchy = cl.cauchy
+    ω = cl.ω
     ξij_T = cl.ξij_T
     ωs = cl.ωs
     shift = cl.shift
@@ -177,8 +185,6 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
 
     @inbounds for i in 0:(2T - 1)
         fij = evaluations[((i) * totaldeg + 1):((i + 1) * totaldeg)]
-        # interpolate the numerator and the denominator densely.
-        # M(D)logD
         P, Q = interpolate!(cauchy, ξij_T[i + 1], fij)
 
         @debug "" i P Q
@@ -198,16 +204,13 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
         (P_coeffs, P_interpolated, Nd, P_higher_degrees_contribution, Ni, Nt),
         (Q_coeffs, Q_interpolated, Dd, Q_higher_degrees_contribution, Di, Dt)
     )
-        # the index of the coefficient being intepolated            
         @inbounds for idx in 1:(degreebound + 1)
-            # the degree of the coefficient being intepolated
             deg = degreebound - idx + 1
             @debug """
             Interpolating coefficient at index $idx (out of $(degreebound + 1))
             Degree of that coefficient is $deg.
             """
 
-            # evaluations at points ωs
             y_points = cfs[idx]
 
             @debug """
@@ -220,7 +223,6 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
             $higher_contributions
             """
 
-            # account for the contribution of higher degree terms
             for i in 1:(2T)
                 y_points[i] = y_points[i] - higher_contributions[i][deg + 1]
             end
@@ -230,26 +232,46 @@ function interpolate!(cl::CuytLee, evaluations::Vector{FiniteFieldElem}) where {
             success = success_i && success
 
             @debug "Interpolated $(interpolated[idx])"
-            # update the contributions of higher degree term expansions 
-            # to the lower degree coefficients
             expansion = collect(terms(evaluate(interpolated[idx], (xs .* inv.(dilation)) .+ shift)))
             @debug """
             Expansion of interpolated coefficient:
             $expansion
             """
 
-            # for each point..
+            degree_term_values = begin
+                values = Matrix{elem_type(K)}(undef, deg, 2T)
+                fill!(values, zero(K))
+                for term in expansion
+                    term_degree = total_degree(term)
+                    if term_degree >= deg
+                        continue
+                    end
+                    ratio = one(K)
+                    exponents = exponent_vector(term, 1)
+                    for jj in 1:length(ω)
+                        exponent_j = exponents[jj]
+                        iszero(exponent_j) && continue
+                        ratio *= ω[jj]^exponent_j
+                    end
+                    term_value = leading_coefficient(term)
+                    for i in 1:(2T)
+                        values[term_degree + 1, i] += term_value
+                        term_value *= ratio
+                    end
+                end
+                values
+            end
+
             for i in 1:(2T)
-                # for each degree smaller than the current..
                 for dd in 0:(deg - 1)
-                    td = filter(t -> total_degree(t) == dd, expansion)
-                    tdi = sum(td, init=zero(R))
-                    higher_contributions[i][dd + 1] += evaluate(tdi, ωs[i])
-                    # higher_contributions[i][dd + 1] += cfs[idx][i]
+                    degree_term_value = degree_term_values[dd + 1, i]
+                    iszero(degree_term_value) && continue
+                    higher_contributions[i][dd + 1] += degree_term_value
                 end
             end
         end
     end
+
     P = sum(P_interpolated)
     Q = sum(Q_interpolated)
     undilated = gens(Rhom) .* map(inv, dilation)
