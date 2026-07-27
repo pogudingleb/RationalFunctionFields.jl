@@ -313,10 +313,46 @@ SIMPLIFICATION_REGIMES = Dict(
 )
 
 """
-    simplified_generating_set(rff; prob_threshold = 0.99, seed = 42)
+    simplified_generating_set(rff::RationalFunctionField)
 
-Returns a simplified set of generators for `rff`. 
-Result is correct (in the Monte-Carlo sense) with probability at least `prob_threshold`.
+Returns a simplified set of generators of rational function field `rff`. 
+
+## Options
+
+Optional keyword arguments:
+
+- `prob_threshold`: probability of correctness. Default is `0.99`.
+- `simplify`: effort of simplification. 
+    One of `:weak`, `:standard`, `:strong`. 
+    Default is `:standard`.
+- `cmp`: comparator for rational functions. 
+    A function `cmp : (f1, f2) -> Bool`,
+    should return `true` whenever `f1` is simpler than `f2`. 
+- `seed`: RNG seed.
+
+## Example
+
+Basic usage:
+
+```julia
+using RationalFunctionFields, Nemo
+
+R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+
+F = RationalFunctionField([x^2 + y^2, x^3 + y^3, x^4 + y^4])
+
+simplified_generating_set(F)
+```
+
+Using a custom comparator:
+
+```julia
+cmp = function (f1,f2)
+    return total_degree(numerator(f1)) < total_degree(numerator(f2))
+end
+
+simplified_generating_set(F, cmp = cmp)
+```
 """
 @timeit _to function simplified_generating_set(
     rff::RationalFunctionField;
