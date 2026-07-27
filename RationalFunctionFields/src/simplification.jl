@@ -41,10 +41,11 @@ Applies the following passes:
 2. Remove redundant generators.
 """
 @timeit _to function beautiful_generators(
-    rff::RationalFunctionField;
+    rff::RationalFunctionField,
+    cmp;
     discard_redundant = true,
     reversed_order = false,
-    priority_variables = [],
+    priority_variables = []
 )
     time_start = time_ns()
     fracs = dennums_to_fractions(rff.dennums)
@@ -59,8 +60,8 @@ Applies the following passes:
     if discard_redundant
         fracs_priority = filter(f -> issubset(vars(f), priority_variables), fracs)
         fracs_rest = filter(f -> !(f in fracs_priority), fracs)
-        sort!(fracs_priority, lt = rational_function_cmp)
-        sort!(fracs_rest, lt = rational_function_cmp)
+        sort!(fracs_priority, lt = cmp)
+        sort!(fracs_rest, lt = cmp)
         fracs = vcat(fracs_priority, fracs_rest)
         @debug "The pool of fractions of size $(length(fracs))\n$(join(map(repr, fracs), ",\n"))"
         if reversed_order
@@ -99,7 +100,7 @@ Applies the following passes:
         @debug "Out of $(length(fracs)) simplified generators there are $(length(non_redundant)) non redundant"
         fracs = fracs[non_redundant]
     end
-    sort!(fracs, lt = (f, g) -> rational_function_cmp(f, g))
+    sort!(fracs, lt = (f, g) -> cmp(f, g))
     spring_cleaning_pass!(fracs)
     # _runtime_logger[:id_beautifulization] += (time_ns() - time_start) / 1e9
     beautification_time = (time_ns() - time_start) / 1e9
@@ -219,7 +220,8 @@ Returns a set of Groebner bases for multiple different rankings of variables.
 """
 @timeit _to function generating_sets_fan(
     rff::RationalFunctionField{T},
-    code::Integer;
+    code::Integer,
+    cmp;
     seed = 42,
     up_to_degree = (3, 3),
 ) where {T}
@@ -234,7 +236,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
     # The first basis in some ordering
     ord = InputOrdering()
     new_rff = groebner_basis_coeffs(rff, seed = seed, ordering = ord)
-    cfs = beautiful_generators(new_rff)
+    cfs = beautiful_generators(new_rff, cmp)
     ordering_to_generators[ord] = cfs
     if isempty(cfs)
         return ordering_to_generators
@@ -260,7 +262,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
                 ordering = ord,
                 up_to_degree = up_to_degree,
             )
-            cfs = beautiful_generators(new_rff, discard_redundant = false)
+            cfs = beautiful_generators(new_rff, cmp, discard_redundant = false)
             ordering_to_generators[ord] = cfs
         end
     end
@@ -277,7 +279,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
                 ordering = ord,
                 up_to_degree = up_to_degree,
             )
-            cfs = beautiful_generators(new_rff, discard_redundant = false)
+            cfs = beautiful_generators(new_rff, cmp, discard_redundant = false)
             ordering_to_generators[ord] = cfs
         end
     end
@@ -295,7 +297,7 @@ Returns a set of Groebner bases for multiple different rankings of variables.
                 ordering = ord,
                 up_to_degree = up_to_degree,
             )
-            cfs = beautiful_generators(new_rff, discard_redundant = false)
+            cfs = beautiful_generators(new_rff, cmp, discard_redundant = false)
             ordering_to_generators[ord] = cfs
         end
     end
@@ -311,10 +313,46 @@ SIMPLIFICATION_REGIMES = Dict(
 )
 
 """
-    simplified_generating_set(rff; prob_threshold = 0.99, seed = 42)
+    simplified_generating_set(rff::RationalFunctionField)
 
-Returns a simplified set of generators for `rff`. 
-Result is correct (in the Monte-Carlo sense) with probability at least `prob_threshold`.
+Returns a simplified set of generators of rational function field `rff`. 
+
+## Options
+
+Optional keyword arguments:
+
+- `prob_threshold`: probability of correctness. Default is `0.99`.
+- `simplify`: effort of simplification. 
+    One of `:weak`, `:standard`, `:strong`. 
+    Default is `:standard`.
+- `cmp`: comparator for rational functions. 
+    A function `cmp : (f1, f2) -> Bool`,
+    should return `true` whenever `f1` is simpler than `f2`. 
+- `seed`: RNG seed.
+
+## Example
+
+Basic usage:
+
+```julia
+using RationalFunctionFields, Nemo
+
+R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+
+F = RationalFunctionField([x^2 + y^2, x^3 + y^3, x^4 + y^4])
+
+simplified_generating_set(F)
+```
+
+Using a custom comparator:
+
+```julia
+cmp = function (f1,f2)
+    return total_degree(numerator(f1)) < total_degree(numerator(f2))
+end
+
+simplified_generating_set(F, cmp = cmp)
+```
 """
 @timeit _to function simplified_generating_set(
     rff::RationalFunctionField;
@@ -326,6 +364,7 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
     rational_interpolator = :VanDerHoevenLecerf,
     priority_variables = [],
     return_all = false,
+    cmp = rational_function_cmp
 )
     if isconstant(rff)
         return empty([one(poly_ring(rff)) // one(poly_ring(rff))])
@@ -365,7 +404,7 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
         seed = seed,
         rational_interpolator = rational_interpolator,
     )
-    new_fracs = beautiful_generators(new_rff)
+    new_fracs = beautiful_generators(new_rff, cmp)
     if isempty(new_fracs)
         return new_fracs
     end
@@ -379,16 +418,16 @@ Result is correct (in the Monte-Carlo sense) with probability at least `prob_thr
     append!(new_fracs, poly_generators)
 
     # Compute some GBs
-    fan = generating_sets_fan(new_rff, simpl_params[:gb_fan]; seed = seed)
+    fan = generating_sets_fan(new_rff, simpl_params[:gb_fan], cmp; seed = seed)
     for (ord, rff_gens) in fan
         append!(new_fracs, rff_gens)
     end
 
     # retaining the original generators (but not all!)
-    sort!(new_fracs, lt = rational_function_cmp)
+    sort!(new_fracs, lt = cmp)
     original_fracs = generators(rff)
-    sort!(original_fracs, lt = rational_function_cmp)
-    merge_index = findfirst(f -> rational_function_cmp(new_fracs[end], f), original_fracs)
+    sort!(original_fracs, lt = cmp)
+    merge_index = findfirst(f -> cmp(new_fracs[end], f), original_fracs)
     if isnothing(merge_index)
         merge_index = length(original_fracs)
     else
@@ -405,6 +444,7 @@ Out of $(length(new_fracs)) fractions $(length(new_fracs_unique)) are syntactica
         start_time = time_ns()
         runtime = @elapsed new_fracs = beautiful_generators(
             RationalFunctionField(new_fracs_unique),
+            cmp,
             priority_variables = priority_variables,
         )
         if enforce_minimality

@@ -15,6 +15,11 @@
     r2 = simplified_generating_set(cases[end][:field], return_all = true)
     @test fields_equal(RationalFunctionField(r1), RationalFunctionField(r2), 0.9999)
 
+    cmp = (f, g) -> total_degree(numerator(f)) < total_degree(numerator(g))
+    custom_order = simplified_generating_set(cases[1][:field], cmp = cmp)
+    @test custom_order[1] == x + y // one(R)
+    @test custom_order[2] == x * y // one(R)
+
     # this does not pass as it finds a fraction with lower degree but many terms, maybe this one should be considered simpler
     # push!(
     #    cases,
