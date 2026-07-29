@@ -1,6 +1,6 @@
 name = "RationalFunctionFields"
 uuid = "73480bc8-48a2-41cc-880f-208b490ccf65"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Alexander Demin", "Gleb Pogudin"]
 
 [deps]
