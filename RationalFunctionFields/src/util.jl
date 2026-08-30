@@ -231,7 +231,12 @@ function parent_ring_change(
     end
     bring = base_ring(new_ring)
     exps = Vector{Vector{Int}}(undef, length(poly))
-    coefs = map(c -> bring(c), coefficients(poly))
+    coeff_type = elem_type(bring)
+    coefs = Vector{coeff_type}(undef, length(poly))
+    old_coefs = collect(coefficients(poly))
+    @inbounds for i = 1:length(old_coefs)
+        coefs[i] = bring(old_coefs[i])
+    end
     @inbounds for i = 1:length(poly)
         evec = exponent_vector(poly, i)
         new_exp = zeros(Int, nvars(new_ring))

@@ -129,4 +129,14 @@ append!(
             end
         end
     end
+
+    R, (x1, x2) = polynomial_ring(Nemo.Native.GF(2^62 + 135), ["x1", "x2"])
+    poly = x1 + x2
+    bot = ParamPunPam.KronBenOrTiwari(R, 1, [1, 1])
+    ω = ParamPunPam.startingpoint(bot)
+    ωs = map(i -> ω .^ i, 0:1)
+    ys = map(point -> evaluate(poly, point), ωs)
+    success, interpolated = ParamPunPam.interpolate!(bot, ωs, ys)
+    @test !success
+    @test interpolated != poly
 end
