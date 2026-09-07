@@ -85,6 +85,21 @@ And, voilà, it returns $x + y$ and $xy$:
  x*y
 ```
 
+We can also provide a custom definition of "simple". In the example below, a rational function is considered simpler if it has fewer terms in the numerator:
+
+```julia
+simplified_generating_set(F,
+  cmp = (f1, f2) -> length(numerator(f1)) < length(numerator(f2)))
+```
+
+The output is given below; note `x*y` comes before `x + y`:
+
+```julia
+2-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}:
+ x*y
+ x + y
+```
+
 ## Contacts
 
-The package is maintained by Alexander Demin ([asdemin_2@edu.hse.ru](asdemin_2@edu.hse.ru)) and Gleb Pogudin ([gleb.pogudin@polytechnique.edu](mailto:gleb.pogudin@polytechnique.edu)).
+The package is maintained by Alexander Demin ([demin@lix.polytechnique.fr](demin@lix.polytechnique.fr)) and Gleb Pogudin ([gleb.pogudin@polytechnique.edu](mailto:gleb.pogudin@polytechnique.edu)).

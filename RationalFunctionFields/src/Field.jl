@@ -66,7 +66,12 @@ function poly_ring(F::RationalFunctionField)
     return parent(first(first(F.dennums)))
 end
 
-function generators(F::RationalFunctionField)
+"""
+    generators(F::RationalFunctionField)
+
+Returns a list of rational functions, generators of the field `F`.
+"""
+function AbstractAlgebra.generators(F::RationalFunctionField)
     return dennums_to_fractions(F.dennums)
 end
 

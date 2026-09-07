@@ -6,11 +6,27 @@ using Nemo
 
 using ParamPunPam
 
-@testset "All tests" verbose = true begin
-    @includetests ["discrete-log", "div-and-conq", "fastgcd"]
-    @includetests ["ben-or-tiwari", "interpolators"]
-    @includetests ["blackbox"]
-    @includetests ["utils"]
-    @includetests ["paramgb", "logging"]
-    @includetests ["regressions"]
+function get_test_files()
+    result = Vector{String}()
+    for (dir, _, files) in walkdir("./")
+        for fname in files
+            if fname != "runtests.jl" && endswith(fname, ".jl")
+                push!(result, dir * "/" * fname)
+            end
+        end
+    end
+    return result
+end
+
+@info "Testing started"
+
+all_tests = get_test_files()
+if !isempty(ARGS)
+    all_tests = ARGS
+end
+
+@time @testset "All the tests" verbose = true begin
+    for test_file in all_tests
+        include(test_file)
+    end
 end

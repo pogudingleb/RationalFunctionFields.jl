@@ -25,7 +25,7 @@ export check_algebraicity, field_contains, issubfield, fields_equal
 export constructive_membership
 
 # simplification
-export simplified_generating_set
+export simplified_generating_set, rational_function_cmp
 
 export IdealOMS, fractionfree_generators_raw
 
