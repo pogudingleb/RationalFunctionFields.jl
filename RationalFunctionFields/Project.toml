@@ -1,6 +1,6 @@
 name = "RationalFunctionFields"
 uuid = "73480bc8-48a2-41cc-880f-208b490ccf65"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Alexander Demin", "Gleb Pogudin"]
 
 [deps]
@@ -23,7 +23,7 @@ ParamPunPam = "0.5"
 Random = "1.10"
 Test = "1.10"
 TestSetExtensions = "2, 3, 4"
-TimerOutputs = "0.5.10"
+TimerOutputs = "0.5.10, 1"
 julia = "1.10"
 
 [extras]
