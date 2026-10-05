@@ -97,7 +97,7 @@ function update_trbasis_info!(F::RationalFunctionField, p::Float64)
     end
     maxdeg = maximum(map(total_degree_frac, fgens), init = 1) - 1
     # degree of the polynomial whose nonvanishing will be needed for correct result
-    D = max(10, Int(ceil(maxdeg * length(base_vars) / (1 - p))))
+    D = max(10, UInt64(ceil(maxdeg * length(base_vars) / (1 - p))))
     eval_point = [Nemo.QQ(rand(1:D)) for x in base_vars]
 
     J = jacobian(fgens, eval_point)
@@ -184,7 +184,7 @@ function check_algebraicity(F::RationalFunctionField, ratfuncs, p)
     # degree of the polynomial whose nonvanishing will be needed for correct result
     D = max(
         10,
-        Int(ceil(maxdeg * (length(trbasis) + 1) * (length(ratfuncs) + 1) / (1 - p))),
+        UInt64(ceil(maxdeg * (length(trbasis) + 1) * (length(ratfuncs) + 1) / (1 - p))),
     )
 
     return _check_algebraicity(trbasis, ratfuncs, D)
