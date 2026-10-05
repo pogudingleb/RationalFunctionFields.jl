@@ -10,7 +10,7 @@ mutable struct PrecomputedField{Field}
 
     function PrecomputedField(K::Field) where {Field}
         Nemo.order(K) > typemax(Int) && @warn "The field is too large for discrete logarithms."
-        ordmult = Int(Nemo.order(K) - 1)
+        ordmult = Int64(Nemo.order(K) - 1)
         factors = collect(Primes.factor(Dict, ordmult))
         new{Field}(K, ordmult, factors, Nemo.degree(K))
     end
@@ -87,7 +87,7 @@ end
 # ord is the order of a in Z/Zp.
 function babystep_giantstep_discrete_log(a::I, y::I, ord::T, buf) where {I, T}
     # the size of a giant step
-    m = Int(isqrt(ord) + 1)
+    m = Int64(isqrt(ord) + 1)
     baby = buf.baby
     # this does nothing if baby has enough capacity
     sizehint!(baby, m)

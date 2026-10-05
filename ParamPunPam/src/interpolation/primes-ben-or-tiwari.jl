@@ -83,7 +83,7 @@ function factor_exponents(mi::Vector{T}, n::Integer, factors::Vector{U}) where {
     exps = Vector{Vector{UInt}}(undef, length(mi))
     i = 1
     while i <= length(mi)
-        flag, factorization = factor_with_known_factors(UInt(data(mi[i])), factors)
+        flag, factorization = factor_with_known_factors(UInt64(data(mi[i])), factors)
         if !flag
             break
         end
