@@ -1,3 +1,4 @@
+const START_PRIME = Sys.WORD_SIZE == 64 ? UInt64(2)^64 - 59 : UInt32(2)^32 - 5
 
 mutable struct ModularTracker{F}
     # Current finite field
@@ -8,7 +9,7 @@ mutable struct ModularTracker{F}
     used_primes::Vector{UInt64}
 
     function ModularTracker(blackbox)
-        finite_field = Nemo.Native.GF(Nemo.ZZ(UInt64(2)^64 - 59))
+        finite_field = Nemo.Native.GF(START_PRIME)
         new{typeof(finite_field)}(finite_field, BigInt(1), UInt64[])
     end
 end
