@@ -46,7 +46,7 @@ mutable struct PrimesBenOrTiwari{Ring}
     # the number of terms in the interpolant
     T::Int
     # the vector of prime numbers used in substitution
-    ps::Vector{UInt}
+    ps::Vector{UInt64}
     function PrimesBenOrTiwari(ring::Ring, T::Integer, D::Integer) where {Ring}
         @assert T >= 0
         K = base_ring(ring)
@@ -64,7 +64,7 @@ function startingpoint(bot::PrimesBenOrTiwari)
 end
 
 function factor_with_known_factors(e::T, factors::Vector{T}) where {T}
-    exps = zeros(UInt, length(factors))
+    exps = zeros(UInt64, length(factors))
     @inbounds for i in 1:length(factors)
         r = zero(T)
         e_next = e
@@ -80,7 +80,7 @@ function factor_with_known_factors(e::T, factors::Vector{T}) where {T}
 end
 
 function factor_exponents(mi::Vector{T}, n::Integer, factors::Vector{U}) where {T, U}
-    exps = Vector{Vector{UInt}}(undef, length(mi))
+    exps = Vector{Vector{UInt64}}(undef, length(mi))
     i = 1
     while i <= length(mi)
         flag, factorization = factor_with_known_factors(UInt64(data(mi[i])), factors)
