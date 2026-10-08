@@ -48,6 +48,7 @@ end
 function reconstruct_crt!(state, modular)
     field_to_param_exponents = state.field_to_param_exponents
     char = UInt64(characteristic(modular.finite_field))
+    @info "CHARRRR $char, $(typeof(characteristic(modular.finite_field)))"
     if length(field_to_param_exponents) == 1
         shape = state.shape
         param_coeffs_crt = Vector{Vector{Tuple{Vector{BigInt}, Vector{BigInt}}}}(undef, length(shape))
